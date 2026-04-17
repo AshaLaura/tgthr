@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TGTHR — Your date night concierge</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <p class="logo">TGTHR</p>
+      <p class="tag">Date night, composed.</p>
+    </header>
+
+    <main id="main">
+      <section class="panel hero" id="step-landing" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Be honest</p>
+          <h1 id="hero-title">Most of us forgot how to date.</h1>
+          <p class="lede">
+            Between busy weeks and endless scrolling, planning something thoughtful
+            fell off the list. That’s human — not a character flaw.
+          </p>
+          <p class="lede strong">
+            We’re here to help you compose a night that fits <em>both</em> of you:
+            one activity, one drink, one meal — anchored in what you actually share.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn primary" id="btn-start">
+            Plan a night together
+          </button>
+          <p class="fine-print">
+            A few playful questions, one at a time. First you, then your date.
+          </p>
+        </div>
+      </section>
+
+      <section
+        class="panel flow-panel hidden"
+        id="panel-flow"
+        aria-label="Date night planner questions"
+      >
+        <div class="flow-toolbar">
+          <button type="button" class="link-back" id="btn-flow-exit">
+            ← Home
+          </button>
+          <div class="progress-wrap">
+            <div class="progress-dots" id="progress-dots" role="progressbar" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" aria-label="Question progress"></div>
+            <span class="progress-label" id="progress-label">1 / 1</span>
+          </div>
+          <span class="phase-tag" id="phase-tag">You</span>
+        </div>
+
+        <div class="flow-card" id="flow-card">
+          <div class="flow-step-inner pop-in" id="flow-mount"></div>
+        </div>
+
+        <p class="flow-hint" id="flow-hint" aria-live="polite"></p>
+
+        <div class="flow-nav">
+          <button type="button" class="btn ghost" id="btn-flow-back">Back</button>
+          <button type="button" class="btn primary" id="btn-flow-next">Next</button>
+        </div>
+      </section>
+
+      <section class="panel outro hidden" id="step-outro" aria-labelledby="outro-title">
+        <p class="eyebrow">Recipe incoming</p>
+        <h2 id="outro-title">You did the hard part: showing up with intention.</h2>
+        <p class="lede" id="outro-summary"></p>
+        <p class="fine-print">
+          Next up, we’ll turn this into a single night — <strong>one activity</strong>,
+          <strong>one drink</strong>, and <strong>one meal</strong> woven from what you share.
+          (This preview is local to your browser; nothing is saved on a server yet.)
+        </p>
+        <button type="button" class="btn primary" id="btn-restart">Start over</button>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>TGTHR · A small reminder that dating can be intentional again.</p>
+    </footer>
+
+    <script src="app.js"></script>
+  </body>
+</html>
