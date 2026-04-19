@@ -19,6 +19,19 @@
     },
   };
 
+  const STEP_PHASES = [
+    "you",   // 0 name
+    "you",   // 1 interests
+    "you",   // 2 drinks
+    "you",   // 3 budget
+    "you",   // 4 your diet
+    "date",  // 5 stage
+    "date",  // 6 their vibe
+    "date",  // 7 overlap
+    "date",  // 8 their diet
+    "date",  // 9 goal
+  ];
+
   const interestMeta = [
     { id: "film", label: "Film & stories", icon: "film" },
     { id: "music", label: "Live music", icon: "music" },
@@ -28,15 +41,6 @@
     { id: "games", label: "Games & play", icon: "games" },
     { id: "books", label: "Books & ideas", icon: "books" },
     { id: "wellness", label: "Movement & calm", icon: "wellness" },
-  ];
-
-  const drinkMeta = [
-    { id: "wine", label: "Wine", icon: "wine" },
-    { id: "cocktails", label: "Cocktails", icon: "cocktails" },
-    { id: "beer", label: "Beer", icon: "beer" },
-    { id: "na", label: "Non-alc craft", icon: "na" },
-    { id: "coffee", label: "Coffee & tea", icon: "coffee" },
-    { id: "surprise", label: "Surprise me", icon: "surprise" },
   ];
 
   const icons = {
@@ -67,6 +71,15 @@
     wellness: "movement & calm",
   };
 
+  const drinkMeta = [
+    { id: "wine", label: "Wine", icon: "wine" },
+    { id: "cocktails", label: "Cocktails", icon: "cocktails" },
+    { id: "beer", label: "Beer", icon: "beer" },
+    { id: "na", label: "Non-alc craft", icon: "na" },
+    { id: "coffee", label: "Coffee & tea", icon: "coffee" },
+    { id: "surprise", label: "Surprise me", icon: "surprise" },
+  ];
+
   const drinkLabels = {
     wine: "wine",
     cocktails: "cocktails",
@@ -74,6 +87,39 @@
     na: "non-alc craft",
     coffee: "coffee or tea",
     surprise: "a surprise pour",
+  };
+
+  const drinkBlueprints = {
+    wine: {
+      easy: "A wine bar quiet enough to keep the conversation close — somewhere with good pours and no rush.",
+      spark: "A bar with a short, well-chosen wine list and just enough buzz to feel alive.",
+      stretch: "A beautiful wine stop with real ceremony before dinner: let the first glass set the tone.",
+    },
+    cocktails: {
+      easy: "One thoughtful cocktail in a low-light room with no rush to move you along.",
+      spark: "A cocktail bar with strong signatures and a little flirt in the air.",
+      stretch: "A proper craft cocktail stop that feels occasion-worthy — the kind of place the night orbits around.",
+    },
+    beer: {
+      easy: "A taproom or brewery with a relaxed flight so there's something to compare and talk about.",
+      spark: "A lively beer bar with character — good taps, easy to linger, light competitive energy.",
+      stretch: "A polished craft brewery or beer-forward bar that still feels like a real night out.",
+    },
+    na: {
+      easy: "A zero-proof menu or tea-forward spot that still feels designed, not like a compromise.",
+      spark: "A place with inventive non-alcoholic pours so the drinks feel fun, not dutiful.",
+      stretch: "A beautifully done non-alcoholic pairing or nightcap that keeps the ritual intact.",
+    },
+    coffee: {
+      easy: "Coffee or tea somewhere with warmth, texture, and actual room to linger.",
+      spark: "A cafe with a late pour and a little edge — somewhere you'd stay past the cup.",
+      stretch: "An elegant tea or coffee interlude before dinner: slow and unhurried.",
+    },
+    surprise: {
+      easy: "Dealer's choice at a place with a confident menu and no bad options.",
+      spark: "A bar team you can trust to steer you toward something playful.",
+      stretch: "A destination drink stop where the team can make the night feel a little bespoke.",
+    },
   };
 
   const budgetCopy = {
@@ -151,38 +197,6 @@
     },
   };
 
-  const drinkBlueprints = {
-    wine: {
-      easy: "A glass of wine somewhere quiet enough to keep the conversation close.",
-      spark: "A wine bar with good pours and just enough buzz to feel alive.",
-      stretch: "A beautiful wine stop with a little ceremony before dinner or dessert.",
-    },
-    cocktails: {
-      easy: "One thoughtful cocktail in a low-light room with no rush to move you along.",
-      spark: "A cocktail bar with personality, strong signatures, and a little flirt in the air.",
-      stretch: "A proper cocktail stop that feels occasion-worthy before the main meal.",
-    },
-    beer: {
-      easy: "A brewery or taproom flight where the mood stays casual and easy to talk in.",
-      spark: "A lively beer bar with tasting flights so there is something to compare and riff on.",
-      stretch: "A polished brewery or beer-forward room that still feels like a real night out.",
-    },
-    na: {
-      easy: "A zero-proof menu or tea-forward spot that still feels designed, not like a compromise.",
-      spark: "A place with inventive non-alcoholic pours so the drinks feel fun, not dutiful.",
-      stretch: "A beautifully done non-alcoholic pairing or nightcap that keeps the ritual intact.",
-    },
-    coffee: {
-      easy: "Coffee or tea in a place with warmth, texture, and actual room to linger.",
-      spark: "A cafe-to-bar handoff where the first stop feels bright and conversational.",
-      stretch: "An elegant coffee or tea interlude before a longer dinner or dessert stop.",
-    },
-    surprise: {
-      easy: "Dealer's choice at a place with a confident menu and no bad options.",
-      spark: "A bar team you can trust to steer you toward something playful.",
-      stretch: "A destination drink stop where the team can make the night feel a little bespoke.",
-    },
-  };
 
   const dietOptionMeta = [
     { id: "dairy_free", label: "Dairy-free" },
@@ -219,19 +233,6 @@
       </div>`;
   }
 
-  const STEP_PHASES = [
-    "you",
-    "you",
-    "you",
-    "you",
-    "you",
-    "date",
-    "date",
-    "date",
-    "date",
-    "date",
-  ];
-
   let stepIndex = 0;
   const TOTAL_STEPS = STEP_PHASES.length;
 
@@ -253,6 +254,9 @@
     btnFlowNext: document.getElementById("btn-flow-next"),
     outroSummary: document.getElementById("outro-summary"),
     outroIdeas: document.getElementById("outro-ideas"),
+    outroCityPlan: document.getElementById("outro-city-plan"),
+    btnOakland: document.getElementById("btn-oakland"),
+    btnSF: document.getElementById("btn-sf"),
     btnRestart: document.getElementById("btn-restart"),
   };
 
@@ -292,9 +296,23 @@
     return anchors[Math.min(index, anchors.length - 1)] || "food";
   }
 
-  function pickDrinkPreference(index) {
-    const picks = unique([...state.you.drinks, "coffee"]);
-    return picks[index % picks.length] || "coffee";
+  function pickDrinkPreference() {
+    return state.you.drinks[0] || "surprise";
+  }
+
+  function pillGridDrinks(selected) {
+    const items = drinkMeta
+      .map((item) => {
+        const checked = selected.includes(item.id) ? "checked" : "";
+        const g = icons[item.icon] || "";
+        return `<label class="pill icon-pill">
+          <input type="checkbox" name="youDrinks" value="${item.id}" ${checked} />
+          <span class="pill-glyph" aria-hidden="true">${g}</span>
+          <span class="pill-label">${item.label}</span>
+        </label>`;
+      })
+      .join("");
+    return `<div class="pill-grid pill-grid--drinks" role="group">${items}</div>`;
   }
 
   function describeFoodFit() {
@@ -329,17 +347,15 @@
 
   function buildIdeaCard(styleKey, title, index, why) {
     const interestId = pickAnchorInterest(index);
-    const drinkId = pickDrinkPreference(index);
     const activity = activityBlueprints[interestId]?.[styleKey] || activityBlueprints.food[styleKey];
-    const drink = drinkBlueprints[drinkId]?.[styleKey] || drinkBlueprints.coffee[styleKey];
 
-    return {
-      title,
-      activity,
-      drink,
-      meal: mealBlueprint(styleKey),
-      why,
-    };
+    if (index === 1) {
+      const drinkId = pickDrinkPreference();
+      const bar = drinkBlueprints[drinkId]?.[styleKey] || drinkBlueprints.surprise[styleKey];
+      return { title, activity, bar, why };
+    }
+
+    return { title, activity, meal: mealBlueprint(styleKey), why };
   }
 
   function renderIdeaCards(cards) {
@@ -352,8 +368,7 @@
             <p>${escapeHtml(card.why)}</p>
             <ul class="idea-list">
               <li><strong>Activity:</strong> ${escapeHtml(card.activity)}</li>
-              <li><strong>Drink:</strong> ${escapeHtml(card.drink)}</li>
-              <li><strong>Meal:</strong> ${escapeHtml(card.meal)}</li>
+              <li><strong>${card.bar ? "Bar stop" : "Meal"}:</strong> ${escapeHtml(card.bar || card.meal)}</li>
             </ul>
           </article>`
       )
@@ -373,21 +388,6 @@
       })
       .join("");
     return `<div class="pill-grid" role="group">${items}</div>`;
-  }
-
-  function pillGridDrinks(selected) {
-    const items = drinkMeta
-      .map((item) => {
-        const checked = selected.includes(item.id) ? "checked" : "";
-        const g = icons[item.icon] || "";
-        return `<label class="pill icon-pill">
-          <input type="checkbox" name="youDrinks" value="${item.id}" ${checked} />
-          <span class="pill-glyph" aria-hidden="true">${g}</span>
-          <span class="pill-label">${item.label}</span>
-        </label>`;
-      })
-      .join("");
-    return `<div class="pill-grid pill-grid--drinks" role="group">${items}</div>`;
   }
 
   function renderStepContent(idx) {
@@ -412,7 +412,7 @@
       case 2:
         return `
           <p class="flow-q">What are you into drinking?</p>
-          <p class="flow-sub">Pick everything that sounds good — we’ll mix the mood.</p>
+          <p class="flow-sub">Pick everything that sounds good — we’ll shape one stop around it.</p>
           ${pillGridDrinks(state.you.drinks)}`;
 
       case 3:
@@ -638,7 +638,7 @@
         return true;
       case 2:
         if (state.you.drinks.length === 0) {
-          els.flowHint.textContent = "Pick at least one drink lane (or hit Surprise).";
+          els.flowHint.textContent = "Pick at least one — we’ll shape a stop around it.";
           return false;
         }
         return true;
@@ -759,10 +759,187 @@
     render();
   }
 
+  const cityVenues = {
+    sf: {
+      name: "San Francisco",
+      activity: {
+        film: {
+          easy: "Roxie Theater (Mission) — pick a double bill and let the film break the ice.",
+          spark: "Alamo Drafthouse on Market — cocktail service at your seat, plenty to riff on after.",
+          stretch: "Castro Theatre for a special screening — the room alone is worth the night.",
+        },
+        music: {
+          easy: "Café du Nord (Castro) — intimate basement room, good sound, no shouting required.",
+          spark: "The Independent (Fillmore) — lively mid-size show with real energy.",
+          stretch: "Great American Music Hall — ornate ballroom, full night of music with room to linger.",
+        },
+        food: {
+          easy: "Ferry Building Marketplace stroll — grab something from Acme Bread or Hog Island and meander.",
+          spark: "Mission tacos crawl: La Taqueria to El Farolito, short walk between stops.",
+          stretch: "Bi-Rite Market + Dolores Park picnic at golden hour, everything sourced local.",
+        },
+        art: {
+          easy: "SFMOMA Thursday late hours — quieter crowd, great light, solid cafe inside.",
+          spark: "de Young Museum in Golden Gate Park — strong rotating exhibits and a tower view.",
+          stretch: "Creativity Explored (Mission) — unexpected and genuinely moving, great conversation starter.",
+        },
+        outdoors: {
+          easy: "Lands End trail to the Sutro Baths ruins — scenic, short, almost always empty.",
+          spark: "Dolores Park on a clear afternoon — bring a blanket, people-watch, stay for sunset.",
+          stretch: "Marin Headlands viewpoint at golden hour — 20 min from the city, looks like a film still.",
+        },
+        games: {
+          easy: "Brewcade (Castro) — classic arcade games, good beer, low pressure.",
+          spark: "Coin-Op (SoMa) — bigger, louder, perfect for a little competition.",
+          stretch: "Spin SF (SoMa) — ping pong tables, full bar, private table if you book ahead.",
+        },
+        books: {
+          easy: "City Lights (North Beach) — three floors, no pressure, built for browsing together.",
+          spark: "Green Apple Books (Richmond) — labyrinthine and full of surprises, great for wandering.",
+          stretch: "Dog Eared Books (Mission) then drinks at the bar next door — an unhurried evening circuit.",
+        },
+        wellness: {
+          easy: "Kabuki Springs & Spa (Japantown) — communal baths, serene, genuinely restorative.",
+          spark: "Archimedes Banya (SoMa) — Russian banya experience, surprisingly fun and social.",
+          stretch: "Sutro Baths hike at sunset into dinner in the Outer Sunset — pace and beauty.",
+        },
+      },
+      meal: {
+        "1": {
+          easy: "Pizzeria Delfina (18th St) — neighborhood, unhurried, genuinely great pizza.",
+          stretch: "Che Fico (Divisadero) — bar area takes walk-ins, pasta is worth every minute.",
+        },
+        "2": {
+          easy: "Nopa (Divisadero) — warm room, wood-fired menu, reliably good.",
+          stretch: "Frances (17th St) — intimate, seasonal, one of the city's best quiet splurges.",
+        },
+        "3": {
+          easy: "Cotogna (Jackson Square) — rustic Italian that feels luxurious without trying.",
+          stretch: "Bix (Gold St) — jazz, supper-club glamour, the kind of room that makes you feel like a character.",
+        },
+      },
+      bar: {
+        wine: "The Riddler (Hayes Valley) — 100% women-made wines, gorgeous room, ideal for lingering.",
+        cocktails: "Trick Dog (Mission) — inventive rotating menu, reliably one of the city's best.",
+        beer: "Cellarmaker Brewing (SoMa) — small-batch pours, friendly room, great for sampling together.",
+        na: "Seedlip pop-up at Dandelion Chocolate (Mission) — beautifully done zero-proof sips and chocolate.",
+        coffee: "Sightglass Coffee (SoMa) — big industrial space, late hours, good for a slow debrief.",
+        surprise: "Mano (Mission) — rotating natural wine and low-intervention pours, the staff will steer you right.",
+      },
+    },
+    oak: {
+      name: "Oakland",
+      activity: {
+        film: {
+          easy: "New Parkway Theater (Uptown) — second-run films, couches, pizza and beer at your seat.",
+          spark: "Grand Lake Theatre (Grand Lake) — gorgeous 1926 marquee, great for catching something buzzy.",
+          stretch: "Paramount Theatre (Uptown) — art deco landmark; check their calendar for a live event or screening.",
+        },
+        music: {
+          easy: "Eli's Mile High Club (North Oakland) — legendary blues bar, casual and intimate.",
+          spark: "Starline Social Club (Temescal) — mid-size, good sound, strong local lineup.",
+          stretch: "Fox Theater (Uptown) — stunning restored venue, worth planning a whole night around.",
+        },
+        food: {
+          easy: "Temescal Alley stroll — coffee at Farley's East, snack at Tacos Oscar, browse the shops.",
+          spark: "Swan's Market (Old Oakland) — food hall with rotating vendors, natural wine, low-key fun.",
+          stretch: "Grand Lake Farmers Market (Saturday morning) into a long park breakfast after.",
+        },
+        art: {
+          easy: "Oakland Museum of California (Lake Merritt) — rotating shows, rooftop garden, never crowded.",
+          spark: "Vessel Gallery (Temescal) — contemporary work in a converted warehouse, always interesting.",
+          stretch: "First Fridays in Uptown — galleries open late, food trucks, street energy you can't manufacture.",
+        },
+        outdoors: {
+          easy: "Lake Merritt loop at golden hour — flat, scenic, city lights come on as you finish.",
+          spark: "Redwood Regional Park — canopy hiking that feels nothing like a city, 20 min from downtown.",
+          stretch: "Morcom Amphitheatre of Roses at peak bloom — hidden Oakland gem, genuinely romantic.",
+        },
+        games: {
+          easy: "Lost & Found (Jack London) — outdoor bar with bocce, fire pits, very relaxed.",
+          spark: "Kingpins (Jack London) — boutique bowling, strong drinks, great for a little competition.",
+          stretch: "The Portal (Temescal) — retro arcade and board game bar, surprisingly deep for a full evening.",
+        },
+        books: {
+          easy: "Pegasus Books (Shattuck) — thoughtful independent, great staff picks, easy to spend an hour.",
+          spark: "Dog Eared Books (Telegraph) — eclectic, a little chaotic in the best way.",
+          stretch: "Pendragon Books (Rockridge) then dinner on College Ave — classic neighborhood evening.",
+        },
+        wellness: {
+          easy: "Lake Merritt morning walk ending at Grand Lake Coffee — gentle and grounding.",
+          spark: "Joaquin Miller Park trails — quiet forested hike, feels like an escape.",
+          stretch: "Temescal Pool + dinner after — community swim, unhurried evening in the neighborhood.",
+        },
+      },
+      meal: {
+        "1": {
+          easy: "Homeroom (Grand Ave) — mac and cheese done properly, comfort and charm.",
+          stretch: "Shakewell (Cleveland Cascade) — Spanish-inspired small plates, lively but not loud.",
+        },
+        "2": {
+          easy: "Nido (Jack London Square) — modern Mexican, open kitchen, warm and unfussy.",
+          stretch: "Duende (Uptown) — Spanish tapas and flamenco, festive energy perfect for a night with momentum.",
+        },
+        "3": {
+          easy: "Burdell (Temescal) — California-soul cooking from a James Beard-nominated chef.",
+          stretch: "Commis (Piedmont Ave) — Oakland's only Michelin-starred restaurant, a full tasting menu occasion.",
+        },
+      },
+      bar: {
+        wine: "Ordinaire (Piedmont Ave) — Oakland's best natural wine shop and bar, low-key and genuinely lovely.",
+        cocktails: "Salsipuedes (Temescal) — inventive cocktails in a warm neighborhood room, one of Oakland's best.",
+        beer: "Temescal Brewing (Temescal) — excellent local pours, cozy taproom, easy to stay too long.",
+        na: "Timeless Coffee (Uptown) — exceptional zero-waste coffee shop, warm space with late hours.",
+        coffee: "Farley's East (Grand Lake) — neighborhood institution, good for lingering with something warm.",
+        surprise: "Heinold's First and Last Chance (Jack London) — oldest bar in Oakland, historically weird, unforgettable.",
+      },
+    },
+  };
+
+  function renderCityPlan(cityKey) {
+    const city = cityVenues[cityKey];
+    const budget = state.you.budget || "2";
+    const drinkId = pickDrinkPreference();
+    const bar = city.bar[drinkId] || city.bar.surprise;
+
+    const styleKeys = ["easy", "spark", "stretch"];
+    const titles = ["The easy opener", "The shared spark", "The make-it-a-night version"];
+
+    const cards = [0, 1, 2].map((index) => {
+      const styleKey = styleKeys[index];
+      const interestId = pickAnchorInterest(index);
+      const activity = city.activity[interestId]?.[styleKey] || city.activity.food[styleKey];
+      if (index === 1) {
+        return { title: titles[index], activity, bar };
+      }
+      const mealKey = index === 0 ? "easy" : "stretch";
+      const meal = city.meal[budget]?.[mealKey] || city.meal["2"][mealKey];
+      return { title: titles[index], activity, meal };
+    });
+
+    els.outroCityPlan.innerHTML = `
+      <h3 class="city-plan-heading">${escapeHtml(city.name)} Plan</h3>
+      <div class="city-cards">
+        ${cards
+          .map(
+            (card, i) => `
+          <article class="idea-card">
+            <p class="idea-kicker">Idea ${i + 1}</p>
+            <h3>${escapeHtml(card.title)}</h3>
+            <ul class="idea-list">
+              <li><strong>Activity:</strong> ${escapeHtml(card.activity)}</li>
+              <li><strong>${card.bar ? "Bar stop" : "Meal"}:</strong> ${escapeHtml(card.bar || card.meal)}</li>
+            </ul>
+          </article>`
+          )
+          .join("")}
+      </div>`;
+    els.outroCityPlan.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
   function finish() {
     const name = state.you.name ? state.you.name : "You";
     const bitsYou = mapInterests(state.you.interests);
-    const drinks = mapDrinks(state.you.drinks);
     const tier = budgetCopy[state.you.budget] || "something thoughtful";
     const bitsShared = mapInterests(state.date.overlap);
     const dateVibes = mapVibes(state.date.vibe);
@@ -779,7 +956,7 @@
       bitsYou
     )}, and your date is coming across ${formatList(dateVibes)}. You both light up around ${formatList(
       bitsShared
-    )}, drinks are leaning ${formatList(drinks)}, and the best version of the night ends with them feeling ${goalLabel}.${eatingClause}${dateFoodClause}`;
+    )}, and the best version of the night ends with them feeling ${goalLabel}.${eatingClause}${dateFoodClause}`;
 
     renderIdeaCards([
       buildIdeaCard(
@@ -802,6 +979,7 @@
       ),
     ]);
 
+    els.outroCityPlan.innerHTML = "";
     show(els.outro);
   }
 
@@ -854,6 +1032,9 @@
 
   els.btnFlowBack.addEventListener("click", goBack);
   els.btnFlowNext.addEventListener("click", goNext);
+
+  els.btnOakland.addEventListener("click", () => renderCityPlan("oak"));
+  els.btnSF.addEventListener("click", () => renderCityPlan("sf"));
 
   els.btnRestart.addEventListener("click", resetAll);
 })();
