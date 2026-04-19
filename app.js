@@ -8,12 +8,15 @@
       interests: [],
       drinks: [],
       budget: "",
-      diet: "",
+      dietTags: [],
+      dietNotes: "",
     },
     date: {
       stage: "",
       vibe: [],
       overlap: [],
+      dietTags: [],
+      dietNotes: "",
       goal: "",
     },
   };
@@ -81,12 +84,165 @@
     "3": "full sparkle mode",
   };
 
+  const stageLabels = {
+    first: "a true first date",
+    early: "an early connection",
+    steady: "something steadily deepening",
+    long: "a relationship with history",
+  };
+
+  const vibeLabels = {
+    warm: "warm and easy",
+    curious: "curious",
+    witty: "witty",
+    quiet: "quietly deep",
+    bold: "bold",
+    grounded: "grounded",
+  };
+
+  const goalLabels = {
+    seen: "seen and at ease",
+    spark: "playful and electric",
+    closer: "closer and more honest",
+    adventure: "lit up by something new",
+    rest: "restored and cared for",
+  };
+
+  const activityBlueprints = {
+    film: {
+      easy: "Start with an indie screening or repertory cinema, then let the movie do the first half of the conversational work.",
+      spark: "Build around a buzzy screening, short film night, or outdoor movie where there is plenty to react to together.",
+      stretch: "Make the movie the anchor, then turn the after into a long walk or slow dessert debrief while the feelings are still fresh.",
+    },
+    music: {
+      easy: "Pick a listening bar, jazz set, or acoustic show where you can settle in without shouting all night.",
+      spark: "Lean into a lively live set with enough rhythm and movement to keep the night flirtier than formal.",
+      stretch: "Make it a full music night: an intentional set, a second stop after, and room to keep talking once the encore ends.",
+    },
+    food: {
+      easy: "Do a gentle food crawl or market wander so the plan feels social, flexible, and low-pressure.",
+      spark: "Choose a place with share plates and a little scene so tasting things together becomes part of the fun.",
+      stretch: "Let dinner be the main event at a place worth lingering in, with enough pacing for the conversation to deepen.",
+    },
+    art: {
+      easy: "Start at a gallery, museum late hour, or design space that gives you natural prompts without forcing constant banter.",
+      spark: "Pick an exhibit with strong point of view so you have something playful and opinionated to bounce off together.",
+      stretch: "Build around an art-forward evening that feels a little transportive before easing into a slower dinner after.",
+    },
+    outdoors: {
+      easy: "Go for a scenic walk, botanical garden, or waterfront loop where the setting keeps everything relaxed.",
+      spark: "Choose an outdoor plan with a little movement and novelty so the energy stays buoyant instead of interview-like.",
+      stretch: "Make the landscape part of the romance with golden-hour views, then move somewhere cozy once the light drops.",
+    },
+    games: {
+      easy: "Start with a playful spot that gives you something to do with your hands while you get comfortable.",
+      spark: "Make it lightly competitive with arcade games, bar games, or a challenge-based stop that keeps the teasing easy.",
+      stretch: "Turn the whole night into a playful arc: one gamey stop, one celebratory drink, and one proper sit-down after.",
+    },
+    books: {
+      easy: "Open with a bookstore browse or writerly cafe where conversation can meander without feeling overproduced.",
+      spark: "Pick a place with a little intellectual texture so the banter has something interesting to grip onto.",
+      stretch: "Let the night feel cinematic and thoughtful: a browse, a slow pour, and then a dinner built for longer talk.",
+    },
+    wellness: {
+      easy: "Choose a tea house, bathhouse, gentle class, or calm ritual that lowers everyone's shoulders right away.",
+      spark: "Keep the plan sensory and refreshing so it feels memorable without tipping into pressure.",
+      stretch: "Build an unhurried, nourishing night that leaves both of you feeling more present than when you arrived.",
+    },
+  };
+
+  const drinkBlueprints = {
+    wine: {
+      easy: "A glass of wine somewhere quiet enough to keep the conversation close.",
+      spark: "A wine bar with good pours and just enough buzz to feel alive.",
+      stretch: "A beautiful wine stop with a little ceremony before dinner or dessert.",
+    },
+    cocktails: {
+      easy: "One thoughtful cocktail in a low-light room with no rush to move you along.",
+      spark: "A cocktail bar with personality, strong signatures, and a little flirt in the air.",
+      stretch: "A proper cocktail stop that feels occasion-worthy before the main meal.",
+    },
+    beer: {
+      easy: "A brewery or taproom flight where the mood stays casual and easy to talk in.",
+      spark: "A lively beer bar with tasting flights so there is something to compare and riff on.",
+      stretch: "A polished brewery or beer-forward room that still feels like a real night out.",
+    },
+    na: {
+      easy: "A zero-proof menu or tea-forward spot that still feels designed, not like a compromise.",
+      spark: "A place with inventive non-alcoholic pours so the drinks feel fun, not dutiful.",
+      stretch: "A beautifully done non-alcoholic pairing or nightcap that keeps the ritual intact.",
+    },
+    coffee: {
+      easy: "Coffee or tea in a place with warmth, texture, and actual room to linger.",
+      spark: "A cafe-to-bar handoff where the first stop feels bright and conversational.",
+      stretch: "An elegant coffee or tea interlude before a longer dinner or dessert stop.",
+    },
+    surprise: {
+      easy: "Dealer's choice at a place with a confident menu and no bad options.",
+      spark: "A bar team you can trust to steer you toward something playful.",
+      stretch: "A destination drink stop where the team can make the night feel a little bespoke.",
+    },
+  };
+
+  /** Food / diet prefs (multi-select); optional notes for allergies etc. */
+  const dietOptionMeta = [
+    { id: "dairy_free", label: "Dairy-free" },
+    { id: "gluten_free", label: "Gluten-free" },
+    { id: "vegan", label: "Vegan" },
+    { id: "vegetarian", label: "Vegetarian" },
+    { id: "pescatarian", label: "Pescatarian" },
+    { id: "no_pork", label: "No pork" },
+    { id: "paleo", label: "Paleo" },
+    { id: "nut_allergy", label: "Nut allergy" },
+    { id: "shellfish_allergy", label: "Shellfish allergy" },
+    { id: "other", label: "Other" },
+  ];
+
+  const dietOptionLabels = {
+    dairy_free: "dairy-free",
+    gluten_free: "gluten-free",
+    vegan: "vegan",
+    vegetarian: "vegetarian",
+    pescatarian: "pescatarian",
+    no_pork: "no pork",
+    paleo: "paleo",
+    nut_allergy: "nut allergy",
+    shellfish_allergy: "shellfish allergy",
+    other: "other",
+  };
+
+  function mapDietTags(ids) {
+    return ids.map((id) => dietOptionLabels[id] || id.replace(/_/g, " "));
+  }
+
+  /** Shared chips + notes for food allergies / diet (you + date). */
+  function dietFieldsHtml(tags, notes, checkboxName, textareaId) {
+    const chips = dietOptionMeta
+      .map((opt) => {
+        const c = tags.includes(opt.id) ? "checked" : "";
+        return `<label class="chip"><input type="checkbox" name="${checkboxName}" value="${opt.id}" ${c} />${opt.label}</label>`;
+      })
+      .join("");
+    return `
+      <div class="chip-grid diet-options" role="group" aria-label="Food allergies and diet">
+        ${chips}
+      </div>
+      <p class="flow-sub diet-notes-label">Anything else we should watch for? <span class="optional-hint">(optional)</span></p>
+      <div class="field-row diet-notes-field">
+        <label class="sr-only" for="${textareaId}">Additional allergies or notes</label>
+        <textarea id="${textareaId}" rows="3" placeholder="If you tapped Other, say what — or add any allergy not listed above.">${escapeHtml(
+          notes
+        )}</textarea>
+      </div>`;
+  }
+
   const STEP_PHASES = [
     "you",
     "you",
     "you",
     "you",
     "you",
+    "date",
     "date",
     "date",
     "date",
@@ -113,6 +269,7 @@
     btnFlowBack: document.getElementById("btn-flow-back"),
     btnFlowNext: document.getElementById("btn-flow-next"),
     outroSummary: document.getElementById("outro-summary"),
+    outroIdeas: document.getElementById("outro-ideas"),
     btnRestart: document.getElementById("btn-restart"),
   };
 
@@ -137,6 +294,96 @@
 
   function mapDrinks(ids) {
     return ids.map((id) => drinkLabels[id] || id);
+  }
+
+  function mapVibes(ids) {
+    return ids.map((id) => vibeLabels[id] || id);
+  }
+
+  function unique(arr) {
+    return Array.from(new Set(arr.filter(Boolean)));
+  }
+
+  function pickAnchorInterest(index) {
+    const anchors = unique([...state.date.overlap, ...state.you.interests, "food"]);
+    return anchors[Math.min(index, anchors.length - 1)] || "food";
+  }
+
+  function pickDrinkPreference(index) {
+    const picks = unique([...state.you.drinks, "coffee"]);
+    return picks[index % picks.length] || "coffee";
+  }
+
+  function describeFoodFit() {
+    const foodTags = unique([...state.you.dietTags, ...state.date.dietTags]);
+    const notes = unique([state.you.dietNotes, state.date.dietNotes]);
+    if (!foodTags.length && !notes.length) {
+      return "a menu that is easy to navigate for both of you";
+    }
+    if (foodTags.length && !notes.length) {
+      return `${formatList(mapDietTags(foodTags))} friendly options`;
+    }
+    if (!foodTags.length && notes.length) {
+      return `a spot that can handle notes like ${formatList(notes)}`;
+    }
+    return `${formatList(mapDietTags(foodTags))} friendly options and room for notes like ${formatList(
+      notes
+    )}`;
+  }
+
+  function mealBlueprint(styleKey) {
+    const baseByBudget = {
+      "1": {
+        easy: "Keep the meal casual but chosen: a cafe, neighborhood spot, or market-led dinner that still feels thoughtful.",
+        spark: "Go for shareable plates somewhere lively so ordering becomes part of the chemistry.",
+        stretch: "End at a cozy dinner spot that feels like a find rather than a splurge.",
+      },
+      "2": {
+        easy: "Pick a comfortable sit-down restaurant where the pacing lets you exhale and stay a while.",
+        spark: "Book somewhere with a little scene and a menu made for splitting a few standout things.",
+        stretch: "Let dinner carry real weight with a polished room, a good server, and enough time to settle in.",
+      },
+      "3": {
+        easy: "Even the softer version can feel special here: choose a beautiful room with gracious service and zero chaos.",
+        spark: "Make the meal the sexy part with a destination restaurant and a menu worth dressing up for.",
+        stretch: "Go all in on a memorable dinner that feels transporting from the first plate onward.",
+      },
+    };
+    const tier = baseByBudget[state.you.budget] || baseByBudget["2"];
+    return `${tier[styleKey]} Aim for ${describeFoodFit()}.`;
+  }
+
+  function buildIdeaCard(styleKey, title, index, why) {
+    const interestId = pickAnchorInterest(index);
+    const drinkId = pickDrinkPreference(index);
+    const activity = activityBlueprints[interestId]?.[styleKey] || activityBlueprints.food[styleKey];
+    const drink = drinkBlueprints[drinkId]?.[styleKey] || drinkBlueprints.coffee[styleKey];
+
+    return {
+      title,
+      activity,
+      drink,
+      meal: mealBlueprint(styleKey),
+      why,
+    };
+  }
+
+  function renderIdeaCards(cards) {
+    els.outroIdeas.innerHTML = cards
+      .map(
+        (card, index) => `
+          <article class="idea-card">
+            <p class="idea-kicker">Idea ${index + 1}</p>
+            <h3>${escapeHtml(card.title)}</h3>
+            <p>${escapeHtml(card.why)}</p>
+            <ul class="idea-list">
+              <li><strong>Activity:</strong> ${escapeHtml(card.activity)}</li>
+              <li><strong>Drink:</strong> ${escapeHtml(card.drink)}</li>
+              <li><strong>Meal:</strong> ${escapeHtml(card.meal)}</li>
+            </ul>
+          </article>`
+      )
+      .join("");
   }
 
   function pillGridInterests(selected, name) {
@@ -219,14 +466,9 @@
 
       case 4:
         return `
-          <p class="flow-q">Anything we should know about how you eat?</p>
-          <p class="flow-sub">Skip if it doesn’t matter — but allergies help.</p>
-          <div class="field-row">
-            <label class="sr-only" for="fld-diet">Dietary notes</label>
-            <textarea id="fld-diet" placeholder="Allergies, vegetarian, no seafood…">${escapeHtml(
-              state.you.diet
-            )}</textarea>
-          </div>`;
+          <p class="flow-q">Food allergies &amp; how <em>you</em> eat?</p>
+          <p class="flow-sub">Tap anything that applies so we can keep you safe when we pick the meal.</p>
+          ${dietFieldsHtml(state.you.dietTags, state.you.dietNotes, "dietPref", "fld-diet-notes")}`;
 
       case 5:
         return `
@@ -275,6 +517,17 @@
           ${pillGridInterests(state.date.overlap, "dateOverlap")}`;
 
       case 8:
+        return `
+          <p class="flow-q">Food allergies &amp; how <em>they</em> eat?</p>
+          <p class="flow-sub">What you know helps us avoid landmines at the table. If you don’t know, now’s the time to ask.</p>
+          ${dietFieldsHtml(
+            state.date.dietTags,
+            state.date.dietNotes,
+            "dateDietPref",
+            "fld-date-diet-notes"
+          )}`;
+
+      case 9:
         return `
           <p class="flow-q">By the end of the night, you’d love for them to feel…</p>
           <p class="flow-sub">One tap. We’ll shape pace and payoff around it.</p>
@@ -373,7 +626,8 @@
         break;
       }
       case 4:
-        state.you.diet = root.querySelector("#fld-diet")?.value.trim() || "";
+        state.you.dietTags = readChecked(root, "dietPref");
+        state.you.dietNotes = root.querySelector("#fld-diet-notes")?.value.trim() || "";
         break;
       case 5: {
         const s = root.querySelector('input[name="stage"]:checked');
@@ -386,7 +640,11 @@
       case 7:
         state.date.overlap = readChecked(root, "dateOverlap");
         break;
-      case 8: {
+      case 8:
+        state.date.dietTags = readChecked(root, "dateDietPref");
+        state.date.dietNotes = root.querySelector("#fld-date-diet-notes")?.value.trim() || "";
+        break;
+      case 9: {
         const g = root.querySelector('input[name="dateGoal"]:checked');
         state.date.goal = g ? g.value : "";
         break;
@@ -450,6 +708,8 @@
         }
         return true;
       case 8:
+        return true;
+      case 9:
         if (!state.date.goal) {
           els.flowHint.textContent = "Choose how you want the night to land.";
           return false;
@@ -536,12 +796,58 @@
     const drinks = mapDrinks(state.you.drinks);
     const tier = budgetCopy[state.you.budget] || "something thoughtful";
     const bitsShared = mapInterests(state.date.overlap);
+    const dateVibes = mapVibes(state.date.vibe);
+    const stageLabel = stageLabels[state.date.stage] || "a date with real potential";
+    const goalLabel = goalLabels[state.date.goal] || "good in your bodies and glad you came";
 
-    els.outroSummary.textContent = `${name}, we’ve got you — ${formatList(
+    const tags = mapDietTags(state.you.dietTags);
+    const notes = state.you.dietNotes;
+    let eatingClause = "";
+    if (tags.length && notes) {
+      eatingClause = ` For you, food-wise: ${formatList(tags)} (${notes}).`;
+    } else if (tags.length) {
+      eatingClause = ` For you, food-wise: ${formatList(tags)}.`;
+    } else if (notes) {
+      eatingClause = ` Your food notes: ${notes}.`;
+    }
+
+    const dateTags = mapDietTags(state.date.dietTags);
+    const dateNotes = state.date.dietNotes;
+    let dateFoodClause = "";
+    if (dateTags.length && dateNotes) {
+      dateFoodClause = ` For your date (best guess): ${formatList(dateTags)} (${dateNotes}).`;
+    } else if (dateTags.length) {
+      dateFoodClause = ` For your date (best guess): ${formatList(dateTags)}.`;
+    } else if (dateNotes) {
+      dateFoodClause = ` Their food notes: ${dateNotes}.`;
+    }
+
+    els.outroSummary.textContent = `${name}, here’s the read: this is ${stageLabel} with a ${tier} budget, your energy leans ${formatList(
       bitsYou
-    )}, drinks leaning ${formatList(drinks)}, with a ${tier} budget. With your date, we’re weaving in ${formatList(
+    )}, and your date is coming across ${formatList(dateVibes)}. You both light up around ${formatList(
       bitsShared
-    )} so the night lands where you both actually live — not where the apps pretend everyone lives.`;
+    )}, drinks are leaning ${formatList(drinks)}, and the best version of the night ends with them feeling ${goalLabel}.${eatingClause}${dateFoodClause}`;
+
+    renderIdeaCards([
+      buildIdeaCard(
+        "easy",
+        "The easy opener",
+        0,
+        "Best when you want the night to feel natural fast, with enough structure to remove awkwardness without overproducing it."
+      ),
+      buildIdeaCard(
+        "spark",
+        "The shared spark",
+        1,
+        "Best when you want a little more momentum and chemistry, while still staying grounded in what you actually share."
+      ),
+      buildIdeaCard(
+        "stretch",
+        "The make-it-a-night version",
+        2,
+        "Best when you want the plan to feel more intentional and memorable, with room for the night to open up."
+      ),
+    ]);
 
     show(els.outro);
   }
@@ -553,9 +859,17 @@
       interests: [],
       drinks: [],
       budget: "",
-      diet: "",
+      dietTags: [],
+      dietNotes: "",
     };
-    state.date = { stage: "", vibe: [], overlap: [], goal: "" };
+    state.date = {
+      stage: "",
+      vibe: [],
+      overlap: [],
+      dietTags: [],
+      dietNotes: "",
+      goal: "",
+    };
     show(els.landing);
   }
 
@@ -572,9 +886,17 @@
       interests: [],
       drinks: [],
       budget: "",
-      diet: "",
+      dietTags: [],
+      dietNotes: "",
     };
-    state.date = { stage: "", vibe: [], overlap: [], goal: "" };
+    state.date = {
+      stage: "",
+      vibe: [],
+      overlap: [],
+      dietTags: [],
+      dietNotes: "",
+      goal: "",
+    };
   }
 
   els.btnFlowExit.addEventListener("click", () => {

@@ -496,6 +496,55 @@ h2 {
   color: var(--muted);
 }
 
+.diet-options {
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+}
+
+.diet-options .chip {
+  padding-inline: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.diet-options .chip:has(input:checked) {
+  background: linear-gradient(
+    135deg,
+    rgba(155, 127, 214, 0.22),
+    rgba(232, 180, 160, 0.18)
+  );
+  box-shadow: 0 0 0 1px rgba(232, 180, 160, 0.16);
+}
+
+.diet-notes-label {
+  margin-top: 1.35rem;
+  margin-bottom: 0.5rem;
+}
+
+.optional-hint {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.diet-notes-field {
+  margin-top: 0;
+}
+
+.diet-notes-field textarea {
+  min-height: 6.25rem;
+  border-color: rgba(232, 180, 160, 0.22);
+  background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.03)
+    ),
+    var(--bg-elevated);
+}
+
+.diet-notes-field textarea:focus {
+  outline: 2px solid rgba(232, 180, 160, 0.26);
+  outline-offset: 2px;
+}
+
 /* Budget tiles */
 .budget-grid {
   display: grid;
@@ -567,6 +616,55 @@ h2 {
 
 .outro .lede {
   color: rgba(244, 240, 248, 0.88);
+}
+
+.outro-ideas {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.idea-card {
+  padding: 1rem 1.05rem;
+  border-radius: var(--radius);
+  border: 1px solid rgba(232, 180, 160, 0.18);
+  background:
+    radial-gradient(circle at top right, rgba(155, 127, 214, 0.18), transparent 45%),
+    rgba(255, 255, 255, 0.04);
+}
+
+.idea-kicker {
+  margin: 0 0 0.35rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.7rem;
+}
+
+.idea-card h3 {
+  margin: 0 0 0.45rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  line-height: 1.2;
+}
+
+.idea-card > p:not(.idea-kicker) {
+  margin: 0;
+  color: rgba(244, 240, 248, 0.86);
+}
+
+.idea-list {
+  margin: 0.9rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.idea-list li + li {
+  margin-top: 0.45rem;
+}
+
+.idea-list strong {
+  color: var(--text);
 }
 
 .sr-only {
