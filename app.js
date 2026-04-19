@@ -96,6 +96,8 @@
     quiet: "quietly deep",
     bold: "bold",
     grounded: "grounded",
+    playful: "playful",
+    spontaneous: "spontaneous",
   };
 
   const goalLabels = {
@@ -474,6 +476,8 @@
               ["quiet", "Quiet depth"],
               ["bold", "Bold"],
               ["grounded", "Grounded"],
+              ["playful", "Playful"],
+              ["spontaneous", "Spontaneous"],
             ]
               .map(([val, lab]) => {
                 const c = state.date.vibe.includes(val) ? "checked" : "";
