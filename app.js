@@ -9,14 +9,12 @@
       drinks: [],
       budget: "",
       dietTags: [],
-      dietNotes: "",
     },
     date: {
       stage: "",
       vibe: [],
       overlap: [],
       dietTags: [],
-      dietNotes: "",
       goal: "",
     },
   };
@@ -184,39 +182,29 @@
     },
   };
 
-  /** Food / diet prefs (multi-select); optional notes for allergies etc. */
   const dietOptionMeta = [
     { id: "dairy_free", label: "Dairy-free" },
-    { id: "gluten_free", label: "Gluten-free" },
-    { id: "vegan", label: "Vegan" },
     { id: "vegetarian", label: "Vegetarian" },
+    { id: "vegan", label: "Vegan" },
     { id: "pescatarian", label: "Pescatarian" },
-    { id: "no_pork", label: "No pork" },
-    { id: "paleo", label: "Paleo" },
+    { id: "gluten_free", label: "Gluten-free" },
     { id: "nut_allergy", label: "Nut allergy" },
-    { id: "shellfish_allergy", label: "Shellfish allergy" },
-    { id: "other", label: "Other" },
   ];
 
   const dietOptionLabels = {
     dairy_free: "dairy-free",
-    gluten_free: "gluten-free",
-    vegan: "vegan",
     vegetarian: "vegetarian",
+    vegan: "vegan",
     pescatarian: "pescatarian",
-    no_pork: "no pork",
-    paleo: "paleo",
+    gluten_free: "gluten-free",
     nut_allergy: "nut allergy",
-    shellfish_allergy: "shellfish allergy",
-    other: "other",
   };
 
   function mapDietTags(ids) {
     return ids.map((id) => dietOptionLabels[id] || id.replace(/_/g, " "));
   }
 
-  /** Shared chips + notes for food allergies / diet (you + date). */
-  function dietFieldsHtml(tags, notes, checkboxName, textareaId) {
+  function dietFieldsHtml(tags, checkboxName) {
     const chips = dietOptionMeta
       .map((opt) => {
         const c = tags.includes(opt.id) ? "checked" : "";
@@ -224,15 +212,8 @@
       })
       .join("");
     return `
-      <div class="chip-grid diet-options" role="group" aria-label="Food allergies and diet">
+      <div class="chip-grid diet-options" role="group" aria-label="Dietary preferences">
         ${chips}
-      </div>
-      <p class="flow-sub diet-notes-label">Anything else we should watch for? <span class="optional-hint">(optional)</span></p>
-      <div class="field-row diet-notes-field">
-        <label class="sr-only" for="${textareaId}">Additional allergies or notes</label>
-        <textarea id="${textareaId}" rows="3" placeholder="If you tapped Other, say what — or add any allergy not listed above.">${escapeHtml(
-          notes
-        )}</textarea>
       </div>`;
   }
 
@@ -316,19 +297,10 @@
 
   function describeFoodFit() {
     const foodTags = unique([...state.you.dietTags, ...state.date.dietTags]);
-    const notes = unique([state.you.dietNotes, state.date.dietNotes]);
-    if (!foodTags.length && !notes.length) {
+    if (!foodTags.length) {
       return "a menu that is easy to navigate for both of you";
     }
-    if (foodTags.length && !notes.length) {
-      return `${formatList(mapDietTags(foodTags))} friendly options`;
-    }
-    if (!foodTags.length && notes.length) {
-      return `a spot that can handle notes like ${formatList(notes)}`;
-    }
-    return `${formatList(mapDietTags(foodTags))} friendly options and room for notes like ${formatList(
-      notes
-    )}`;
+    return `${formatList(mapDietTags(foodTags))} friendly options`;
   }
 
   function mealBlueprint(styleKey) {
@@ -468,7 +440,7 @@
         return `
           <p class="flow-q">Food allergies &amp; how <em>you</em> eat?</p>
           <p class="flow-sub">Tap anything that applies so we can keep you safe when we pick the meal.</p>
-          ${dietFieldsHtml(state.you.dietTags, state.you.dietNotes, "dietPref", "fld-diet-notes")}`;
+          ${dietFieldsHtml(state.you.dietTags, "dietPref")}`;
 
       case 5:
         return `
@@ -520,12 +492,7 @@
         return `
           <p class="flow-q">Food allergies &amp; how <em>they</em> eat?</p>
           <p class="flow-sub">What you know helps us avoid landmines at the table. If you don’t know, now’s the time to ask.</p>
-          ${dietFieldsHtml(
-            state.date.dietTags,
-            state.date.dietNotes,
-            "dateDietPref",
-            "fld-date-diet-notes"
-          )}`;
+          ${dietFieldsHtml(state.date.dietTags, "dateDietPref")}`;
 
       case 9:
         return `
@@ -627,7 +594,6 @@
       }
       case 4:
         state.you.dietTags = readChecked(root, "dietPref");
-        state.you.dietNotes = root.querySelector("#fld-diet-notes")?.value.trim() || "";
         break;
       case 5: {
         const s = root.querySelector('input[name="stage"]:checked');
@@ -642,7 +608,6 @@
         break;
       case 8:
         state.date.dietTags = readChecked(root, "dateDietPref");
-        state.date.dietNotes = root.querySelector("#fld-date-diet-notes")?.value.trim() || "";
         break;
       case 9: {
         const g = root.querySelector('input[name="dateGoal"]:checked');
@@ -801,26 +766,10 @@
     const goalLabel = goalLabels[state.date.goal] || "good in your bodies and glad you came";
 
     const tags = mapDietTags(state.you.dietTags);
-    const notes = state.you.dietNotes;
-    let eatingClause = "";
-    if (tags.length && notes) {
-      eatingClause = ` For you, food-wise: ${formatList(tags)} (${notes}).`;
-    } else if (tags.length) {
-      eatingClause = ` For you, food-wise: ${formatList(tags)}.`;
-    } else if (notes) {
-      eatingClause = ` Your food notes: ${notes}.`;
-    }
+    const eatingClause = tags.length ? ` For you, food-wise: ${formatList(tags)}.` : "";
 
     const dateTags = mapDietTags(state.date.dietTags);
-    const dateNotes = state.date.dietNotes;
-    let dateFoodClause = "";
-    if (dateTags.length && dateNotes) {
-      dateFoodClause = ` For your date (best guess): ${formatList(dateTags)} (${dateNotes}).`;
-    } else if (dateTags.length) {
-      dateFoodClause = ` For your date (best guess): ${formatList(dateTags)}.`;
-    } else if (dateNotes) {
-      dateFoodClause = ` Their food notes: ${dateNotes}.`;
-    }
+    const dateFoodClause = dateTags.length ? ` For your date (best guess): ${formatList(dateTags)}.` : "";
 
     els.outroSummary.textContent = `${name}, here’s the read: this is ${stageLabel} with a ${tier} budget, your energy leans ${formatList(
       bitsYou
@@ -860,14 +809,12 @@
       drinks: [],
       budget: "",
       dietTags: [],
-      dietNotes: "",
     };
     state.date = {
       stage: "",
       vibe: [],
       overlap: [],
       dietTags: [],
-      dietNotes: "",
       goal: "",
     };
     show(els.landing);
@@ -887,14 +834,12 @@
       drinks: [],
       budget: "",
       dietTags: [],
-      dietNotes: "",
     };
     state.date = {
       stage: "",
       vibe: [],
       overlap: [],
       dietTags: [],
-      dietNotes: "",
       goal: "",
     };
   }

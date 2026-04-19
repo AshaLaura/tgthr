@@ -515,35 +515,6 @@ h2 {
   box-shadow: 0 0 0 1px rgba(232, 180, 160, 0.16);
 }
 
-.diet-notes-label {
-  margin-top: 1.35rem;
-  margin-bottom: 0.5rem;
-}
-
-.optional-hint {
-  color: var(--muted);
-  font-weight: 400;
-}
-
-.diet-notes-field {
-  margin-top: 0;
-}
-
-.diet-notes-field textarea {
-  min-height: 6.25rem;
-  border-color: rgba(232, 180, 160, 0.22);
-  background: linear-gradient(
-      180deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.03)
-    ),
-    var(--bg-elevated);
-}
-
-.diet-notes-field textarea:focus {
-  outline: 2px solid rgba(232, 180, 160, 0.26);
-  outline-offset: 2px;
-}
 
 /* Budget tiles */
 .budget-grid {
