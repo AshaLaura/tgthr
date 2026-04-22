@@ -7,6 +7,16 @@ interface AuthModalProps {
   onClose: () => void
 }
 
+/** Returns the canonical app origin for auth redirects.
+ *  Uses NEXT_PUBLIC_SITE_URL in production so magic-link emails always
+ *  point at the deployed URL, not whatever origin the browser is on. */
+function siteOrigin(): string {
+  if (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL.replace(/\/$/, '')
+  }
+  return window.location.origin
+}
+
 export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
@@ -18,7 +28,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   async function handleGoogle() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin + '/auth/callback' },
+      options: { redirectTo: siteOrigin() + '/auth/callback' },
     })
   }
 
@@ -27,7 +37,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setLoading(true)
     await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: window.location.origin + '/auth/callback' },
+      options: { emailRedirectTo: siteOrigin() + '/auth/callback' },
     })
     setSent(true)
     setLoading(false)
@@ -116,7 +126,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {sent ? (
           <p style={{ color: 'var(--accent)', textAlign: 'center', margin: 0 }}>
-            Magic link sent — check your inbox.
+            Magic link sent — check your inbox ✓
           </p>
         ) : (
           <form onSubmit={handleMagicLink}>

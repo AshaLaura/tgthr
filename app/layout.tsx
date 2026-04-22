@@ -27,9 +27,7 @@ export default function RootLayout({
         <header className="site-header">
           <p className="logo">TGTHR</p>
           <p className="tag">Date night, composed.</p>
-          <div style={{ marginLeft: 'auto' }}>
-            <UserMenu />
-          </div>
+          <UserMenu />
         </header>
         {children}
         <footer className="site-footer">

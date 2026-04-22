@@ -86,16 +86,14 @@ export default function UserMenu() {
 
   return (
     <>
-      <div style={{ marginLeft: 'auto' }}>
-        <button
-          type="button"
-          className="btn ghost"
-          onClick={() => setModalOpen(true)}
-          style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-        >
-          Sign in
-        </button>
-      </div>
+      <button
+        type="button"
+        className="btn ghost"
+        onClick={() => setModalOpen(true)}
+        style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', marginLeft: 'auto' }}
+      >
+        Sign in
+      </button>
       <AuthModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
     </>
   )
