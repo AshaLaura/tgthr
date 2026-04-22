@@ -1,6 +1,8 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import AuthModal from '@/components/AuthModal';
+import { createBrowserClient } from '@/lib/supabase';
 import {
   State,
   STEP_PHASES,
@@ -21,6 +23,9 @@ import {
 } from '@/lib/questionnaire';
 
 export default function Home() {
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const supabase = createBrowserClient();
+
   // — DOM refs —
   const landingRef = useRef<HTMLElement>(null);
   const panelFlowRef = useRef<HTMLElement>(null);
@@ -306,7 +311,7 @@ export default function Home() {
       render();
     }
 
-    function finish() {
+    async function finish() {
       const s = stateRef.current;
       const name = s.you.name ? s.you.name : 'You';
       const bitsYou = mapInterests(s.you.interests);
@@ -360,6 +365,16 @@ export default function Home() {
 
       outroCityPlanRef.current!.innerHTML = '';
       show(outroRef.current!);
+
+      // Check auth state — show save prompt if not signed in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        const promptEl = document.getElementById('auth-save-prompt');
+        if (promptEl) promptEl.style.display = 'block';
+        document.getElementById('btn-auth-prompt')?.addEventListener('click', () => {
+          setAuthModalOpen(true);
+        });
+      }
     }
 
     function resetStateOnly() {
@@ -525,6 +540,11 @@ export default function Home() {
         <p className="eyebrow">Recipe incoming</p>
         <h2 id="outro-title">You did the hard part: showing up with intention.</h2>
         <p className="lede" id="outro-summary" ref={outroSummaryRef}></p>
+        <div id="auth-save-prompt" style={{ display: 'none', marginBottom: '1rem' }}>
+          <p style={{ color: 'var(--accent)', cursor: 'pointer', margin: 0 }} id="btn-auth-prompt">
+            Sign in to save this plan →
+          </p>
+        </div>
         <div
           className="outro-ideas"
           id="outro-ideas"
@@ -566,6 +586,7 @@ export default function Home() {
           Start over
         </button>
       </section>
+      <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
     </main>
   );
 }

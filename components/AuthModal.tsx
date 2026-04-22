@@ -1,0 +1,146 @@
+'use client'
+import { useState } from 'react'
+import { createBrowserClient } from '@/lib/supabase'
+
+interface AuthModalProps {
+  isOpen: boolean
+  onClose: () => void
+}
+
+export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const [email, setEmail] = useState('')
+  const [sent, setSent] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const supabase = createBrowserClient()
+
+  if (!isOpen) return null
+
+  async function handleGoogle() {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/auth/callback' },
+    })
+  }
+
+  async function handleMagicLink(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    await supabase.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.origin + '/auth/callback' },
+    })
+    setSent(true)
+    setLoading(false)
+  }
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(20, 16, 24, 0.78)',
+        zIndex: 1000,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+      }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          width: '100%',
+          maxWidth: '380px',
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--border)',
+          borderRadius: 'var(--radius)',
+          boxShadow: 'var(--shadow)',
+          padding: '1.5rem',
+        }}
+      >
+        {/* Close button */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          style={{
+            position: 'absolute',
+            top: '0.75rem',
+            right: '0.75rem',
+            background: 'none',
+            border: 'none',
+            color: 'var(--muted)',
+            fontSize: '1.25rem',
+            cursor: 'pointer',
+            lineHeight: 1,
+            padding: '0.25rem',
+          }}
+        >
+          ×
+        </button>
+
+        <p
+          className="eyebrow"
+          style={{ color: 'var(--accent)', marginBottom: '0.5rem' }}
+        >
+          Sign in
+        </p>
+        <p style={{ margin: '0 0 1.25rem', color: 'var(--muted)', fontSize: '0.9rem' }}>
+          Save your date plan and access it later.
+        </p>
+
+        {/* Google OAuth */}
+        <button
+          type="button"
+          className="btn primary"
+          onClick={handleGoogle}
+          style={{ width: '100%', textAlign: 'center' }}
+        >
+          Continue with Google
+        </button>
+
+        {/* Divider */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            margin: '1rem 0',
+          }}
+        >
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+          <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>or</span>
+          <div style={{ flex: 1, height: '1px', background: 'var(--border)' }} />
+        </div>
+
+        {sent ? (
+          <p style={{ color: 'var(--accent)', textAlign: 'center', margin: 0 }}>
+            Magic link sent — check your inbox.
+          </p>
+        ) : (
+          <form onSubmit={handleMagicLink}>
+            <div className="field-row" style={{ marginBottom: '0.75rem' }}>
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+            <button
+              type="submit"
+              className="btn ghost"
+              disabled={loading}
+              style={{ width: '100%', textAlign: 'center' }}
+            >
+              {loading ? 'Sending…' : 'Send magic link'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}

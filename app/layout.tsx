@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import UserMenu from "@/components/UserMenu";
 
 export const metadata: Metadata = {
   title: "TGTHR — Your date night concierge",
@@ -26,6 +27,9 @@ export default function RootLayout({
         <header className="site-header">
           <p className="logo">TGTHR</p>
           <p className="tag">Date night, composed.</p>
+          <div style={{ marginLeft: 'auto' }}>
+            <UserMenu />
+          </div>
         </header>
         {children}
         <footer className="site-footer">
