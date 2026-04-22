@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { createBrowserClient } from '@/lib/supabase'
 
 interface AuthModalProps {
@@ -21,9 +22,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const supabase = createBrowserClient()
 
-  if (!isOpen) return null
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!isOpen || !mounted) return null
 
   async function handleGoogle() {
     await supabase.auth.signInWithOAuth({
@@ -43,7 +47,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setLoading(false)
   }
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -151,6 +155,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

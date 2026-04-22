@@ -1,5 +1,6 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 
 interface OnboardingModalProps {
   isOpen: boolean
@@ -8,8 +9,11 @@ interface OnboardingModalProps {
 
 export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProps) {
   const [saving, setSaving] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
-  if (!isOpen) return null
+  useEffect(() => { setMounted(true) }, [])
+
+  if (!isOpen || !mounted) return null
 
   async function handleChoice(style: 'surprise' | 'collaborative') {
     setSaving(true)
@@ -25,7 +29,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
     }
   }
 
-  return (
+  return createPortal(
     <div
       style={{
         position: 'fixed',
@@ -124,6 +128,7 @@ export default function OnboardingModal({ isOpen, onClose }: OnboardingModalProp
           </p>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
