@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import AuthModal from '@/components/AuthModal';
+import OnboardingModal from '@/components/OnboardingModal';
 import { createBrowserClient } from '@/lib/supabase';
 import {
   State,
@@ -24,6 +25,7 @@ import {
 
 export default function Home() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [onboardingOpen, setOnboardingOpen] = useState(false);
   const supabase = createBrowserClient();
 
   // — DOM refs —
@@ -366,7 +368,7 @@ export default function Home() {
       outroCityPlanRef.current!.innerHTML = '';
       show(outroRef.current!);
 
-      // Check auth state — show save prompt if not signed in
+      // Check auth state — show save prompt if not signed in, or onboarding if planning_style not set
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         const promptEl = document.getElementById('auth-save-prompt');
@@ -374,6 +376,19 @@ export default function Home() {
         document.getElementById('btn-auth-prompt')?.addEventListener('click', () => {
           setAuthModalOpen(true);
         });
+      } else {
+        // User is signed in — check if onboarding is complete
+        try {
+          const res = await fetch('/api/profile');
+          if (res.ok) {
+            const profile = await res.json();
+            if (!profile.planning_style) {
+              setOnboardingOpen(true);
+            }
+          }
+        } catch {
+          // non-critical — silently skip onboarding check on error
+        }
       }
     }
 
@@ -587,6 +602,7 @@ export default function Home() {
         </button>
       </section>
       <AuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <OnboardingModal isOpen={onboardingOpen} onClose={() => setOnboardingOpen(false)} />
     </main>
   );
 }
