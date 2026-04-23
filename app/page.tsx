@@ -6,6 +6,7 @@ import OnboardingModal from '@/components/OnboardingModal';
 import { createBrowserClient } from '@/lib/supabase';
 import {
   State,
+  IdeaCard,
   STEP_PHASES,
   MAX_INTERESTS,
   MAX_VIBE,
@@ -44,8 +45,6 @@ export default function Home() {
   const outroSummaryRef = useRef<HTMLParagraphElement>(null);
   const outroIdeasRef = useRef<HTMLDivElement>(null);
   const outroCityPlanRef = useRef<HTMLDivElement>(null);
-  const btnOaklandRef = useRef<HTMLButtonElement>(null);
-  const btnSFRef = useRef<HTMLButtonElement>(null);
   const btnRestartRef = useRef<HTMLButtonElement>(null);
 
   // — questionnaire state (imperative, not React state) —
@@ -54,6 +53,7 @@ export default function Home() {
     date: { stage: '', vibe: [], overlap: [], dietTags: [], goal: '' },
   });
   const stepIndexRef = useRef(0);
+  const cardsRef = useRef<IdeaCard[]>([]);
 
   useEffect(() => {
     const TOTAL_STEPS = STEP_PHASES.length;
@@ -341,7 +341,7 @@ export default function Home() {
         bitsShared
       )}, and the best version of the night ends with them feeling ${goalLabel}.${eatingClause}${dateFoodClause}`;
 
-      outroIdeasRef.current!.innerHTML = renderIdeaCardsHtml([
+      const builtCards = [
         buildIdeaCard(
           'easy',
           'The easy opener',
@@ -363,7 +363,9 @@ export default function Home() {
           'Best when you want the plan to feel more intentional and memorable, with room for the night to open up.',
           s
         ),
-      ]);
+      ];
+      cardsRef.current = builtCards;
+      outroIdeasRef.current!.innerHTML = renderIdeaCardsHtml(builtCards);
 
       outroCityPlanRef.current!.innerHTML = '';
       show(outroRef.current!);
@@ -454,8 +456,58 @@ export default function Home() {
     btnFlowBackRef.current!.addEventListener('click', goBack);
     btnFlowNextRef.current!.addEventListener('click', goNext);
 
-    btnOaklandRef.current!.addEventListener('click', () => renderCityPlan('oak'));
-    btnSFRef.current!.addEventListener('click', () => renderCityPlan('sf'));
+    // Delegated handler for idea cards — bookmark, "Let's do this", city choice
+    outroRef.current!.addEventListener('click', async (e) => {
+      const target = e.target as HTMLElement;
+
+      // Bookmark click
+      const bookmarkBtn = target.closest('.idea-bookmark') as HTMLElement | null;
+      if (bookmarkBtn) {
+        const cardIndex = parseInt(bookmarkBtn.dataset.cardIndex ?? '0', 10);
+        const card = cardsRef.current[cardIndex];
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setAuthModalOpen(true);
+          return;
+        }
+        try {
+          await fetch('/api/plans', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              questionnaire_data: stateRef.current,
+              plan_output: [card],
+            }),
+          });
+          bookmarkBtn.classList.add('is-saved');
+        } catch {
+          // non-critical
+        }
+        return;
+      }
+
+      // "Let's do this" click — show city chooser
+      const ctaBtn = target.closest('.idea-cta') as HTMLElement | null;
+      if (ctaBtn) {
+        outroCityPlanRef.current!.innerHTML = `
+          <div class="city-chooser">
+            <p class="city-chooser-label">Where would you like to go out?</p>
+            <div class="city-chooser-btns">
+              <button class="btn secondary" data-city="oak" type="button">Oakland</button>
+              <button class="btn secondary" data-city="sf" type="button">San Francisco</button>
+            </div>
+          </div>`;
+        outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        return;
+      }
+
+      // City selection
+      const cityBtn = target.closest('[data-city]') as HTMLElement | null;
+      if (cityBtn) {
+        renderCityPlan((cityBtn as HTMLElement).dataset.city!);
+        return;
+      }
+    });
 
     btnRestartRef.current!.addEventListener('click', resetAll);
   }, []);
@@ -592,27 +644,6 @@ export default function Home() {
           aria-label="Three date ideas"
           ref={outroIdeasRef}
         ></div>
-        <div className="city-plan-prompt">
-          <p className="city-plan-label">Want real venues near you?</p>
-          <div className="city-plan-btns">
-            <button
-              type="button"
-              className="btn secondary"
-              id="btn-oakland"
-              ref={btnOaklandRef}
-            >
-              Oakland Plan
-            </button>
-            <button
-              type="button"
-              className="btn secondary"
-              id="btn-sf"
-              ref={btnSFRef}
-            >
-              San Francisco Plan
-            </button>
-          </div>
-        </div>
         <div
           id="outro-city-plan"
           className="outro-city-plan"

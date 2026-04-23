@@ -664,18 +664,30 @@ export function renderStepContent(idx: number, state: State): string {
   }
 }
 
+const bookmarkSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
+
 export function renderIdeaCardsHtml(cards: IdeaCard[]): string {
   return cards
     .map(
       (card, index) => `
-          <article class="idea-card">
-            <p class="idea-kicker">Idea ${index + 1}</p>
+          <article class="idea-card" data-card-index="${index}">
+            <div class="idea-card-header">
+              <p class="idea-kicker">Idea ${index + 1}</p>
+              <button class="idea-bookmark" aria-label="Save idea ${index + 1}" data-card-index="${index}" type="button">${bookmarkSvg}</button>
+            </div>
             <h3>${escapeHtml(card.title)}</h3>
-            <p>${escapeHtml(card.why)}</p>
-            <ul class="idea-list">
-              <li><strong>Activity:</strong> ${escapeHtml(card.activity)}</li>
-              <li><strong>${card.bar ? "Bar stop" : "Meal"}:</strong> ${escapeHtml(card.bar || card.meal || "")}</li>
-            </ul>
+            <p class="idea-why">${escapeHtml(card.why ?? '')}</p>
+            <div class="idea-details">
+              <div class="idea-detail-row">
+                <span class="idea-detail-label">Activity</span>
+                <span class="idea-detail-value">${escapeHtml(card.activity)}</span>
+              </div>
+              <div class="idea-detail-row">
+                <span class="idea-detail-label">${card.bar ? 'Bar stop' : 'Dinner'}</span>
+                <span class="idea-detail-value">${escapeHtml(card.bar || card.meal || '')}</span>
+              </div>
+            </div>
+            <button class="idea-cta" data-card-index="${index}" type="button">Let's do this ›</button>
           </article>`
     )
     .join("");
