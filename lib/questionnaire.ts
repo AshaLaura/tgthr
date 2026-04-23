@@ -513,16 +513,25 @@ export function dietFieldsHtml(tags: string[], checkboxName: string): string {
 
 export function renderStepContent(idx: number, state: State): string {
   switch (idx) {
-    case 0:
+    case 0: {
+      const savedName = state.you.name.trim();
+      if (savedName) {
+        return `
+          <p class="flow-q">Hi ${escapeHtml(savedName)}, let's get this date planned.</p>
+          <p class="flow-sub">Want us to use a different name? Update it below, or just keep going.</p>
+          <div class="field-row">
+            <label class="sr-only" for="fld-name">Name</label>
+            <input type="text" id="fld-name" maxlength="80" placeholder="First name or nickname" value="${escapeAttr(savedName)}" autocomplete="given-name" />
+          </div>`;
+      }
       return `
           <p class="flow-q">What should we call you?</p>
           <p class="flow-sub">Totally optional — nicknames welcome.</p>
           <div class="field-row">
             <label class="sr-only" for="fld-name">Name</label>
-            <input type="text" id="fld-name" maxlength="80" placeholder="First name or nickname" value="${escapeAttr(
-              state.you.name
-            )}" autocomplete="given-name" />
+            <input type="text" id="fld-name" maxlength="80" placeholder="First name or nickname" value="" autocomplete="given-name" />
           </div>`;
+    }
 
     case 1:
       return `

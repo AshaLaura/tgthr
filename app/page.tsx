@@ -382,9 +382,9 @@ export default function Home() {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
-            // Save the name they typed in step 1 if not already set
+            // Save the name they typed in step 1 (update even if already set, so renames stick)
             const enteredName = s.you.name.trim();
-            if (enteredName && !profile.display_name) {
+            if (enteredName && enteredName !== profile.display_name) {
               fetch('/api/profile', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -423,10 +423,27 @@ export default function Home() {
     }
 
     // — wire up events —
-    btnStartRef.current!.addEventListener('click', () => {
+    btnStartRef.current!.addEventListener('click', async () => {
       stepIndexRef.current = 0;
       resetStateOnly();
       show(panelFlowRef.current!);
+
+      // Pre-populate name from profile if signed in
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        try {
+          const res = await fetch('/api/profile');
+          if (res.ok) {
+            const profile = await res.json();
+            if (profile.display_name) {
+              stateRef.current.you.name = profile.display_name;
+            }
+          }
+        } catch {
+          // non-critical
+        }
+      }
+
       render();
     });
 
