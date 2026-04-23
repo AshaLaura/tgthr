@@ -510,14 +510,11 @@ export default function Home() {
         return;
       }
 
-      // City selection — show chosen card + city venue plan
+      // City selection — show only the city plan for the chosen idea
       const cityBtn = target.closest('[data-city]') as HTMLElement | null;
       if (cityBtn) {
         const city = (cityBtn as HTMLElement).dataset.city!;
-        const card = cardsRef.current[selectedCardIndex];
-        const cardHtml = renderIdeaCardsHtml([card]);
-        const cityPlanHtml = renderCityPlanHtml(city, stateRef.current);
-        outroCityPlanRef.current!.innerHTML = cardHtml + cityPlanHtml;
+        outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(city, stateRef.current, selectedCardIndex);
         outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }

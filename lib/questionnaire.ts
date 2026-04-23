@@ -693,27 +693,36 @@ export function renderIdeaCardsHtml(cards: IdeaCard[]): string {
     .join("");
 }
 
-export function renderCityPlanHtml(cityKey: string, state: State): string {
+const styleKeys = ["easy", "spark", "stretch"];
+const ideaTitles = ["The easy opener", "The shared spark", "The make-it-a-night version"];
+
+function buildCityCard(
+  cityKey: string,
+  state: State,
+  index: number
+): { title: string; activity: string; bar?: string; meal?: string } {
   const city = cityVenues[cityKey];
   const budget = state.you.budget || "2";
   const drinkId = pickDrinkPreference(state);
-  const bar = city.bar[drinkId] || city.bar.surprise;
+  const styleKey = styleKeys[index];
+  const interestId = pickAnchorInterest(index, state);
+  const activity = city.activity[interestId]?.[styleKey] || city.activity.food[styleKey];
 
-  const styleKeys = ["easy", "spark", "stretch"];
-  const titles = ["The easy opener", "The shared spark", "The make-it-a-night version"];
+  if (index === 1) {
+    const bar = city.bar[drinkId] || city.bar.surprise;
+    return { title: ideaTitles[index], activity, bar };
+  }
+  const mealKey = index === 0 ? "easy" : "stretch";
+  const meal = city.meal[budget]?.[mealKey] || city.meal["2"][mealKey];
+  return { title: ideaTitles[index], activity, meal };
+}
 
-  const cards = [0, 1, 2].map((index) => {
-    const styleKey = styleKeys[index];
-    const interestId = pickAnchorInterest(index, state);
-    const activity =
-      city.activity[interestId]?.[styleKey] || city.activity.food[styleKey];
-    if (index === 1) {
-      return { title: titles[index], activity, bar };
-    }
-    const mealKey = index === 0 ? "easy" : "stretch";
-    const meal = city.meal[budget]?.[mealKey] || city.meal["2"][mealKey];
-    return { title: titles[index], activity, meal };
-  });
+/** Render the city venue plan for one specific idea index (0 = easy, 1 = spark, 2 = stretch). */
+export function renderCityPlanHtml(cityKey: string, state: State, ideaIndex?: number): string {
+  const city = cityVenues[cityKey];
+  const indices = ideaIndex !== undefined ? [ideaIndex] : [0, 1, 2];
+
+  const cards = indices.map((i) => buildCityCard(cityKey, state, i));
 
   return `
       <h3 class="city-plan-heading">${escapeHtml(city.name)} Plan</h3>
@@ -722,7 +731,7 @@ export function renderCityPlanHtml(cityKey: string, state: State): string {
           .map(
             (card, i) => `
           <article class="idea-card">
-            <p class="idea-kicker">Idea ${i + 1}</p>
+            <p class="idea-kicker">Idea ${indices[i] + 1}</p>
             <h3>${escapeHtml(card.title)}</h3>
             <ul class="idea-list">
               <li><strong>Activity:</strong> ${escapeHtml(card.activity)}</li>
