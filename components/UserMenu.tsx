@@ -6,39 +6,53 @@ import type { User } from '@supabase/supabase-js'
 
 export default function UserMenu() {
   const [user, setUser] = useState<User | null>(null)
+  const [displayName, setDisplayName] = useState<string>('')
   const supabase = createBrowserClient()
   const [modalOpen, setModalOpen] = useState(false)
 
+  async function loadProfile() {
+    try {
+      const res = await fetch('/api/profile')
+      if (res.ok) {
+        const profile = await res.json()
+        if (profile.display_name) setDisplayName(profile.display_name)
+      }
+    } catch {
+      // non-critical
+    }
+  }
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user)
+      if (data.user) loadProfile()
+    })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null)
+      if (session?.user) loadProfile()
+      else setDisplayName('')
     })
     return () => subscription.unsubscribe()
   }, [])
 
   async function signOut() {
     await supabase.auth.signOut()
+    setDisplayName('')
   }
 
   if (user) {
-    const initial = (
-      user.user_metadata?.full_name?.[0] ||
-      user.user_metadata?.name?.[0] ||
-      user.email?.[0] ||
-      '?'
-    ).toUpperCase()
-
-    const displayName =
+    // Prefer profile display_name, then OAuth name, then email
+    const name =
+      displayName ||
       user.user_metadata?.full_name ||
       user.user_metadata?.name ||
       user.email ||
       ''
 
-    const truncated =
-      displayName.length > 20 ? displayName.slice(0, 20) + '…' : displayName
+    const initial = (name[0] || '?').toUpperCase()
+    const truncated = name.length > 20 ? name.slice(0, 20) + '…' : name
 
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginLeft: 'auto' }}>

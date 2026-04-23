@@ -377,17 +377,26 @@ export default function Home() {
           setAuthModalOpen(true);
         });
       } else {
-        // User is signed in — check if onboarding is complete
+        // User is signed in — save display_name from step 1 and check onboarding
         try {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
+            // Save the name they typed in step 1 if not already set
+            const enteredName = s.you.name.trim();
+            if (enteredName && !profile.display_name) {
+              fetch('/api/profile', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ display_name: enteredName }),
+              }).catch(() => {});
+            }
             if (!profile.planning_style) {
               setOnboardingOpen(true);
             }
           }
         } catch {
-          // non-critical — silently skip onboarding check on error
+          // non-critical — silently skip on error
         }
       }
     }
