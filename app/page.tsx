@@ -413,6 +413,8 @@ export default function Home() {
     function resetAll() {
       stepIndexRef.current = 0;
       resetStateOnly();
+      outroIdeasRef.current!.style.display = '';
+      outroCityPlanRef.current!.innerHTML = '';
       show(landingRef.current!);
     }
 
@@ -456,6 +458,9 @@ export default function Home() {
     btnFlowBackRef.current!.addEventListener('click', goBack);
     btnFlowNextRef.current!.addEventListener('click', goNext);
 
+    // Track which card the user chose
+    let selectedCardIndex = 0;
+
     // Delegated handler for idea cards — bookmark, "Let's do this", city choice
     outroRef.current!.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
@@ -486,9 +491,13 @@ export default function Home() {
         return;
       }
 
-      // "Let's do this" click — show city chooser
+      // "Let's do this" click — hide all cards, show city chooser
       const ctaBtn = target.closest('.idea-cta') as HTMLElement | null;
       if (ctaBtn) {
+        selectedCardIndex = parseInt(ctaBtn.dataset.cardIndex ?? '0', 10);
+        // Hide the ideas grid
+        outroIdeasRef.current!.style.display = 'none';
+        // Show city chooser
         outroCityPlanRef.current!.innerHTML = `
           <div class="city-chooser">
             <p class="city-chooser-label">Where would you like to go out?</p>
@@ -501,10 +510,15 @@ export default function Home() {
         return;
       }
 
-      // City selection
+      // City selection — show chosen card + city venue plan
       const cityBtn = target.closest('[data-city]') as HTMLElement | null;
       if (cityBtn) {
-        renderCityPlan((cityBtn as HTMLElement).dataset.city!);
+        const city = (cityBtn as HTMLElement).dataset.city!;
+        const card = cardsRef.current[selectedCardIndex];
+        const cardHtml = renderIdeaCardsHtml([card]);
+        const cityPlanHtml = renderCityPlanHtml(city, stateRef.current);
+        outroCityPlanRef.current!.innerHTML = cardHtml + cityPlanHtml;
+        outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
     });
