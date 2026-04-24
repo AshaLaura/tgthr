@@ -17,6 +17,7 @@ export interface State {
     vibe: string[];
     overlap: string[];
     dietTags: string[];
+    drinks: string[];
     goal: string;
   };
 }
@@ -24,14 +25,15 @@ export interface State {
 export const STEP_PHASES = [
   "you",   // 0 name
   "you",   // 1 interests
-  "you",   // 2 drinks
-  "you",   // 3 budget
-  "you",   // 4 your diet
+  "you",   // 2 your diet
+  "you",   // 3 drinks
+  "you",   // 4 budget
   "date",  // 5 stage
   "date",  // 6 their vibe
   "date",  // 7 overlap
   "date",  // 8 their diet
-  "date",  // 9 goal
+  "date",  // 9 their drinks
+  "date",  // 10 goal
 ];
 
 export const interestMeta = [
@@ -483,13 +485,13 @@ export function pillGridInterests(selected: string[], name: string): string {
   return `<div class="pill-grid" role="group">${items}</div>`;
 }
 
-export function pillGridDrinks(selected: string[]): string {
+export function pillGridDrinks(selected: string[], name = "youDrinks"): string {
   const items = drinkMeta
     .map((item) => {
       const checked = selected.includes(item.id) ? "checked" : "";
       const g = icons[item.icon] || "";
       return `<label class="pill icon-pill">
-          <input type="checkbox" name="youDrinks" value="${item.id}" ${checked} />
+          <input type="checkbox" name="${name}" value="${item.id}" ${checked} />
           <span class="pill-glyph" aria-hidden="true">${g}</span>
           <span class="pill-label">${item.label}</span>
         </label>`;
@@ -633,6 +635,12 @@ export function renderStepContent(idx: number, state: State): string {
           ${dietFieldsHtml(state.date.dietTags, "dateDietPref")}`;
 
     case 9:
+      return `
+          <p class="flow-q">What does your date like to drink?</p>
+          <p class="flow-sub">Not sure? Now's a great time to ask — we'll use it to shape their stop of the night.</p>
+          ${pillGridDrinks(state.date.drinks, "dateDrinks")}`;
+
+    case 10:
       return `
           <p class="flow-q">By the end of the night, you'd love for them to feel…</p>
           <p class="flow-sub">One tap. We'll shape pace and payoff around it.</p>

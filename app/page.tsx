@@ -50,7 +50,7 @@ export default function Home() {
   // — questionnaire state (imperative, not React state) —
   const stateRef = useRef<State>({
     you: { name: '', interests: [], drinks: [], budget: '', dietTags: [] },
-    date: { stage: '', vibe: [], overlap: [], dietTags: [], goal: '' },
+    date: { stage: '', vibe: [], overlap: [], dietTags: [], drinks: [], goal: '' },
   });
   const stepIndexRef = useRef(0);
   const cardsRef = useRef<IdeaCard[]>([]);
@@ -152,7 +152,10 @@ export default function Home() {
         case 8:
           s.date.dietTags = readChecked(root, 'dateDietPref');
           break;
-        case 9: {
+        case 9:
+          s.date.drinks = readChecked(root, 'dateDrinks');
+          break;
+        case 10: {
           const g = root.querySelector<HTMLInputElement>(
             'input[name="dateGoal"]:checked'
           );
@@ -225,6 +228,8 @@ export default function Home() {
         case 8:
           return true;
         case 9:
+          return true;
+        case 10:
           if (!s.date.goal) {
             flowHintRef.current!.textContent = 'Choose how you want the night to land.';
             return false;
@@ -406,7 +411,7 @@ export default function Home() {
     function resetStateOnly() {
       stateRef.current = {
         you: { name: '', interests: [], drinks: [], budget: '', dietTags: [] },
-        date: { stage: '', vibe: [], overlap: [], dietTags: [], goal: '' },
+        date: { stage: '', vibe: [], overlap: [], dietTags: [], drinks: [], goal: '' },
       };
     }
 
