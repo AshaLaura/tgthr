@@ -848,11 +848,16 @@ export function renderStepContent(idx: number, state: State): string {
           </div>`;
     }
 
-    case 1:
+    case 1: {
+      const hasSavedInterests = state.you.interests.length > 0;
       return `
           <p class="flow-q">Tap up to <em>three</em> vibes that feel like you.</p>
-          <p class="flow-sub">We'll use these to thread your night together.</p>
+          <p class="flow-sub">${hasSavedInterests
+            ? "We remembered your usual picks — update anything for tonight."
+            : "We'll use these to thread your night together."
+          }</p>
           ${pillGridInterests(state.you.interests, "youInterests")}`;
+    }
 
     case 2:
       return `
