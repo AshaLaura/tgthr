@@ -58,9 +58,37 @@ export default function Home() {
   useEffect(() => {
     const TOTAL_STEPS = STEP_PHASES.length;
     let stepAbort: AbortController | null = null;
-    // When the user is already logged in we skip step 0 (name).
-    // startStep tracks the first step index so progress + back nav stay correct.
-    let startStep = 0;
+    // Steps to skip when user is already logged in (0=name, 2=your diet, 3=your drinks).
+    // Values are pre-filled from profile instead.
+    let skippedSteps: Set<number> = new Set();
+
+    function firstVisibleStep(): number {
+      for (let i = 0; i < TOTAL_STEPS; i++) {
+        if (!skippedSteps.has(i)) return i;
+      }
+      return 0;
+    }
+
+    function nextVisibleStep(from: number): number {
+      let n = from + 1;
+      while (n < TOTAL_STEPS && skippedSteps.has(n)) n++;
+      return n;
+    }
+
+    function prevVisibleStep(from: number): number {
+      let p = from - 1;
+      while (p >= 0 && skippedSteps.has(p)) p--;
+      return p;
+    }
+
+    /** 0-based position of `step` among visible (non-skipped) steps. */
+    function visibleIndex(step: number): number {
+      let count = 0;
+      for (let i = 0; i < step; i++) {
+        if (!skippedSteps.has(i)) count++;
+      }
+      return count;
+    }
 
     function show(el: HTMLElement) {
       [landingRef.current!, panelFlowRef.current!, outroRef.current!].forEach(
@@ -88,8 +116,8 @@ export default function Home() {
       const phase = STEP_PHASES[stepIndexRef.current];
       phaseTagRef.current!.textContent = phase === 'you' ? 'You' : 'Your date';
 
-      const effectiveStep  = stepIndexRef.current - startStep;
-      const effectiveTotal = TOTAL_STEPS - startStep;
+      const effectiveStep  = visibleIndex(stepIndexRef.current);
+      const effectiveTotal = TOTAL_STEPS - skippedSteps.size;
       progressLabelRef.current!.textContent = `${effectiveStep + 1} / ${effectiveTotal}`;
       progressDotsRef.current!.innerHTML = '';
       for (let i = 0; i < effectiveTotal; i++) {
@@ -103,7 +131,7 @@ export default function Home() {
       progressDotsRef.current!.setAttribute('aria-valuemax', String(effectiveTotal));
       progressDotsRef.current!.setAttribute('aria-valuenow', String(effectiveStep + 1));
 
-      const isLast = stepIndexRef.current === TOTAL_STEPS - 1;
+      const isLast = nextVisibleStep(stepIndexRef.current) >= TOTAL_STEPS;
       btnFlowNextRef.current!.textContent = isLast ? 'See your outline' : 'Next';
 
       wireStepHandlers();
@@ -305,21 +333,23 @@ export default function Home() {
     function goNext() {
       collectFromDom();
       if (!validate()) return;
-      if (stepIndexRef.current >= TOTAL_STEPS - 1) {
+      const next = nextVisibleStep(stepIndexRef.current);
+      if (next >= TOTAL_STEPS) {
         finish();
         return;
       }
-      stepIndexRef.current += 1;
+      stepIndexRef.current = next;
       render();
     }
 
     function goBack() {
       collectFromDom();
-      if (stepIndexRef.current <= startStep) {
+      const prev = prevVisibleStep(stepIndexRef.current);
+      if (prev < firstVisibleStep()) {
         show(landingRef.current!);
         return;
       }
-      stepIndexRef.current -= 1;
+      stepIndexRef.current = prev;
       render();
     }
 
@@ -428,7 +458,7 @@ export default function Home() {
     }
 
     function resetAll() {
-      startStep = 0;
+      skippedSteps = new Set();
       stepIndexRef.current = 0;
       resetStateOnly();
       outroIdeasRef.current!.style.display = '';
@@ -451,20 +481,23 @@ export default function Home() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Logged in — skip the name step entirely, pre-fill from profile
-        startStep = 1;
-        stepIndexRef.current = 1;
+        // Logged in — skip name (0), diet (2), drinks (3); pre-fill from profile
+        skippedSteps = new Set([0, 2, 3]);
+        stepIndexRef.current = firstVisibleStep();
         try {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
             if (profile.display_name) stateRef.current.you.name = profile.display_name;
+            if (profile.interests?.length) stateRef.current.you.interests = profile.interests;
+            if (profile.diet_tags?.length) stateRef.current.you.dietTags = profile.diet_tags;
+            if (profile.drinks?.length) stateRef.current.you.drinks = profile.drinks;
           }
         } catch {
           // non-critical
         }
       } else {
-        startStep = 0;
+        skippedSteps = new Set();
         stepIndexRef.current = 0;
       }
 
