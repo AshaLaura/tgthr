@@ -541,11 +541,17 @@ export function renderStepContent(idx: number, state: State): string {
 
     case 2:
       return `
+          <p class="flow-q">Food allergies &amp; how <em>you</em> eat?</p>
+          <p class="flow-sub">Tap anything that applies so we can keep you safe when we pick the meal.</p>
+          ${dietFieldsHtml(state.you.dietTags, "dietPref")}`;
+
+    case 3:
+      return `
           <p class="flow-q">What are you into drinking?</p>
           <p class="flow-sub">Pick everything that sounds good — we'll shape one stop around it.</p>
           ${pillGridDrinks(state.you.drinks)}`;
 
-    case 3:
+    case 4:
       return `
           <p class="flow-q">What's the budget tonight?</p>
           <p class="flow-sub">No judgment — just calibration.</p>
@@ -567,12 +573,6 @@ export function renderStepContent(idx: number, state: State): string {
               })
               .join("")}
           </div>`;
-
-    case 4:
-      return `
-          <p class="flow-q">Food allergies &amp; how <em>you</em> eat?</p>
-          <p class="flow-sub">Tap anything that applies so we can keep you safe when we pick the meal.</p>
-          ${dietFieldsHtml(state.you.dietTags, "dietPref")}`;
 
     case 5:
       return `

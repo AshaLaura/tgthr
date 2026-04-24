@@ -124,18 +124,18 @@ export default function Home() {
           s.you.interests = readChecked(root, 'youInterests');
           break;
         case 2:
+          s.you.dietTags = readChecked(root, 'dietPref');
+          break;
+        case 3:
           s.you.drinks = readChecked(root, 'youDrinks');
           break;
-        case 3: {
+        case 4: {
           const b = root.querySelector<HTMLInputElement>(
             'input[name="youBudget"]:checked'
           );
           s.you.budget = b ? b.value : '';
           break;
         }
-        case 4:
-          s.you.dietTags = readChecked(root, 'dietPref');
-          break;
         case 5: {
           const st = root.querySelector<HTMLInputElement>(
             'input[name="stage"]:checked'
@@ -180,19 +180,19 @@ export default function Home() {
           }
           return true;
         case 2:
+          return true;
+        case 3:
           if (s.you.drinks.length === 0) {
             flowHintRef.current!.textContent =
               "Pick at least one — we'll shape a stop around it.";
             return false;
           }
           return true;
-        case 3:
+        case 4:
           if (!s.you.budget) {
             flowHintRef.current!.textContent = 'Tap a budget tier to keep us in range.';
             return false;
           }
-          return true;
-        case 4:
           return true;
         case 5:
           if (!s.date.stage) {
