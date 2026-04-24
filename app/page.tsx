@@ -58,6 +58,9 @@ export default function Home() {
   useEffect(() => {
     const TOTAL_STEPS = STEP_PHASES.length;
     let stepAbort: AbortController | null = null;
+    // When the user is already logged in we skip step 0 (name).
+    // startStep tracks the first step index so progress + back nav stay correct.
+    let startStep = 0;
 
     function show(el: HTMLElement) {
       [landingRef.current!, panelFlowRef.current!, outroRef.current!].forEach(
@@ -85,18 +88,20 @@ export default function Home() {
       const phase = STEP_PHASES[stepIndexRef.current];
       phaseTagRef.current!.textContent = phase === 'you' ? 'You' : 'Your date';
 
-      progressLabelRef.current!.textContent = `${stepIndexRef.current + 1} / ${TOTAL_STEPS}`;
+      const effectiveStep  = stepIndexRef.current - startStep;
+      const effectiveTotal = TOTAL_STEPS - startStep;
+      progressLabelRef.current!.textContent = `${effectiveStep + 1} / ${effectiveTotal}`;
       progressDotsRef.current!.innerHTML = '';
-      for (let i = 0; i < TOTAL_STEPS; i++) {
+      for (let i = 0; i < effectiveTotal; i++) {
         const dot = document.createElement('span');
         dot.className = 'dot';
-        if (i < stepIndexRef.current) dot.classList.add('is-done');
-        if (i === stepIndexRef.current) dot.classList.add('is-active');
+        if (i < effectiveStep) dot.classList.add('is-done');
+        if (i === effectiveStep) dot.classList.add('is-active');
         dot.setAttribute('aria-hidden', 'true');
         progressDotsRef.current!.appendChild(dot);
       }
-      progressDotsRef.current!.setAttribute('aria-valuemax', String(TOTAL_STEPS));
-      progressDotsRef.current!.setAttribute('aria-valuenow', String(stepIndexRef.current + 1));
+      progressDotsRef.current!.setAttribute('aria-valuemax', String(effectiveTotal));
+      progressDotsRef.current!.setAttribute('aria-valuenow', String(effectiveStep + 1));
 
       const isLast = stepIndexRef.current === TOTAL_STEPS - 1;
       btnFlowNextRef.current!.textContent = isLast ? 'See your outline' : 'Next';
@@ -310,7 +315,7 @@ export default function Home() {
 
     function goBack() {
       collectFromDom();
-      if (stepIndexRef.current === 0) {
+      if (stepIndexRef.current <= startStep) {
         show(landingRef.current!);
         return;
       }
@@ -423,6 +428,7 @@ export default function Home() {
     }
 
     function resetAll() {
+      startStep = 0;
       stepIndexRef.current = 0;
       resetStateOnly();
       outroIdeasRef.current!.style.display = '';
@@ -440,24 +446,26 @@ export default function Home() {
 
     // — wire up events —
     btnStartRef.current!.addEventListener('click', async () => {
-      stepIndexRef.current = 0;
       resetStateOnly();
       show(panelFlowRef.current!);
 
-      // Pre-populate name from profile if signed in
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
+        // Logged in — skip the name step entirely, pre-fill from profile
+        startStep = 1;
+        stepIndexRef.current = 1;
         try {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
-            if (profile.display_name) {
-              stateRef.current.you.name = profile.display_name;
-            }
+            if (profile.display_name) stateRef.current.you.name = profile.display_name;
           }
         } catch {
           // non-critical
         }
+      } else {
+        startStep = 0;
+        stepIndexRef.current = 0;
       }
 
       render();

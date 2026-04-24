@@ -1,10 +1,12 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase'
 import { interestMeta, drinkMeta, dietOptionMeta } from '@/lib/questionnaire'
 import { generateBio } from '@/lib/bio'
 import type { IdeaCard } from '@/lib/questionnaire'
+import ErrorState from '@/components/ErrorState'
+import LoadingState from '@/components/LoadingState'
 
 interface Profile {
   id: string
@@ -30,72 +32,60 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-          router.replace('/')
-          return
-        }
-        setAuthName(
-          user.user_metadata?.full_name ||
-          user.user_metadata?.name ||
-          user.email || ''
-        )
-
-        const [profileRes, plansRes] = await Promise.all([
-          fetch('/api/profile'),
-          fetch('/api/plans'),
-        ])
-
-        if (!profileRes.ok) {
-          const err = await profileRes.json().catch(() => ({}))
-          setError(err.error || 'Failed to load profile.')
-          return
-        }
-
-        const raw = await profileRes.json()
-        // Normalise — guard against columns not yet added via migration
-        setProfile({
-          ...raw,
-          interests: raw.interests ?? [],
-          drinks:    raw.drinks    ?? [],
-          diet_tags: raw.diet_tags ?? [],
-        })
-
-        if (plansRes.ok) setPlans(await plansRes.json())
-      } catch (e) {
-        setError('Something went wrong loading your profile.')
-        console.error(e)
-      } finally {
-        setLoading(false)
+  const load = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        router.replace('/')
+        return
       }
+      setAuthName(
+        user.user_metadata?.full_name ||
+        user.user_metadata?.name ||
+        user.email || ''
+      )
+
+      const [profileRes, plansRes] = await Promise.all([
+        fetch('/api/profile'),
+        fetch('/api/plans'),
+      ])
+
+      if (!profileRes.ok) {
+        const err = await profileRes.json().catch(() => ({}))
+        setError(err.error || 'Failed to load profile.')
+        return
+      }
+
+      const raw = await profileRes.json()
+      // Normalise — guard against columns not yet added via migration
+      setProfile({
+        ...raw,
+        interests: raw.interests ?? [],
+        drinks:    raw.drinks    ?? [],
+        diet_tags: raw.diet_tags ?? [],
+      })
+
+      if (plansRes.ok) setPlans(await plansRes.json())
+    } catch (e) {
+      setError('Something went wrong loading your profile.')
+      console.error(e)
+    } finally {
+      setLoading(false)
     }
-    load()
   }, [])
 
-  if (loading) {
-    return (
-      <main style={{ padding: '2rem', color: 'var(--muted)', textAlign: 'center' }}>
-        Loading…
-      </main>
-    )
-  }
+  useEffect(() => { load() }, [])
+
+  if (loading) return <LoadingState message="Pulling up your profile…" />
 
   if (error) {
     return (
-      <main style={{ padding: '2rem', color: 'var(--muted)', textAlign: 'center' }}>
-        <p>{error}</p>
-        <button
-          type="button"
-          className="btn ghost"
-          onClick={() => router.push('/')}
-          style={{ marginTop: '1rem' }}
-        >
-          ← Back to home
-        </button>
-      </main>
+      <ErrorState
+        message={error}
+        onRetry={load}
+      />
     )
   }
 
