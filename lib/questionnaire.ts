@@ -361,6 +361,319 @@ export const cityVenues: Record<string, {
   },
 };
 
+// ——— Venue links ————————————————————————————————————————————————————————————
+
+type VenueLink = { label: string; url: string };
+
+const YELP = 'https://www.yelp.com/biz/';
+const MAPS = 'https://maps.google.com/?q=';
+
+// Flat lookup: "city:slot:key1[:key2]" → links array
+const cityVenueLinks: Record<string, VenueLink[]> = {
+
+  // ── SF · Activities ──────────────────────────────────────────────────────
+  'sf:activity:film:easy': [
+    { label: 'Website', url: 'https://www.roxie.com' },
+    { label: 'Yelp', url: YELP + 'roxie-theater-san-francisco' },
+  ],
+  'sf:activity:film:spark': [
+    { label: 'Website', url: 'https://drafthouse.com/san-francisco' },
+    { label: 'Yelp', url: YELP + 'alamo-drafthouse-cinema-san-francisco' },
+  ],
+  'sf:activity:film:stretch': [
+    { label: 'Website', url: 'https://www.castrotheatre.com' },
+    { label: 'Yelp', url: YELP + 'castro-theatre-san-francisco' },
+  ],
+  'sf:activity:music:easy': [
+    { label: 'Website', url: 'https://www.cafedunord.com' },
+    { label: 'Yelp', url: YELP + 'cafe-du-nord-san-francisco' },
+  ],
+  'sf:activity:music:spark': [
+    { label: 'Website', url: 'https://www.theindependentsf.com' },
+    { label: 'Yelp', url: YELP + 'the-independent-san-francisco' },
+  ],
+  'sf:activity:music:stretch': [
+    { label: 'Website', url: 'https://www.gamh.com' },
+    { label: 'Yelp', url: YELP + 'great-american-music-hall-san-francisco' },
+  ],
+  'sf:activity:food:easy': [
+    { label: 'Website', url: 'https://www.ferrybuildingmarketplace.com' },
+    { label: 'Maps', url: MAPS + 'Ferry+Building+Marketplace+San+Francisco' },
+  ],
+  'sf:activity:food:spark': [
+    { label: 'La Taqueria', url: YELP + 'la-taqueria-san-francisco' },
+    { label: 'El Farolito', url: YELP + 'el-farolito-san-francisco-2' },
+  ],
+  'sf:activity:food:stretch': [
+    { label: 'Website', url: 'https://www.biritemarket.com' },
+    { label: 'Yelp', url: YELP + 'bi-rite-market-san-francisco' },
+  ],
+  'sf:activity:art:easy': [
+    { label: 'Website', url: 'https://www.sfmoma.org' },
+    { label: 'Yelp', url: YELP + 'sfmoma-san-francisco' },
+  ],
+  'sf:activity:art:spark': [
+    { label: 'Website', url: 'https://www.famsf.org/de-young' },
+    { label: 'Yelp', url: YELP + 'de-young-museum-san-francisco' },
+  ],
+  'sf:activity:art:stretch': [
+    { label: 'Website', url: 'https://www.creativityexplored.org' },
+    { label: 'Yelp', url: YELP + 'creativity-explored-san-francisco' },
+  ],
+  'sf:activity:outdoors:easy': [
+    { label: 'Maps', url: MAPS + 'Lands+End+Trail+San+Francisco' },
+    { label: 'NPS', url: 'https://www.nps.gov/goga/planyourvisit/landsend.htm' },
+  ],
+  'sf:activity:outdoors:spark': [
+    { label: 'Maps', url: MAPS + 'Dolores+Park+San+Francisco' },
+  ],
+  'sf:activity:outdoors:stretch': [
+    { label: 'Maps', url: MAPS + 'Marin+Headlands+Viewpoint+CA' },
+    { label: 'NPS', url: 'https://www.nps.gov/goga/marin-headlands.htm' },
+  ],
+  'sf:activity:games:easy': [
+    { label: 'Website', url: 'https://www.brewcade.com' },
+    { label: 'Yelp', url: YELP + 'brewcade-san-francisco' },
+  ],
+  'sf:activity:games:spark': [
+    { label: 'Website', url: 'https://www.coinopsf.com' },
+    { label: 'Yelp', url: YELP + 'coin-op-game-room-san-francisco' },
+  ],
+  'sf:activity:games:stretch': [
+    { label: 'Website', url: 'https://wearespin.com/san-francisco' },
+    { label: 'Yelp', url: YELP + 'spin-san-francisco' },
+  ],
+  'sf:activity:books:easy': [
+    { label: 'Website', url: 'https://citylights.com' },
+    { label: 'Yelp', url: YELP + 'city-lights-booksellers-and-publishers-san-francisco' },
+  ],
+  'sf:activity:books:spark': [
+    { label: 'Website', url: 'https://www.greenapplebooks.com' },
+    { label: 'Yelp', url: YELP + 'green-apple-books-san-francisco' },
+  ],
+  'sf:activity:books:stretch': [
+    { label: 'Yelp', url: YELP + 'dog-eared-books-san-francisco' },
+    { label: 'Maps', url: MAPS + 'Dog+Eared+Books+Mission+San+Francisco' },
+  ],
+  'sf:activity:wellness:easy': [
+    { label: 'Website', url: 'https://kabukisprings.com' },
+    { label: 'Yelp', url: YELP + 'kabuki-springs-and-spa-san-francisco' },
+  ],
+  'sf:activity:wellness:spark': [
+    { label: 'Website', url: 'https://archimedesbanya.com' },
+    { label: 'Yelp', url: YELP + 'archimedes-banya-san-francisco' },
+  ],
+  'sf:activity:wellness:stretch': [
+    { label: 'Maps', url: MAPS + 'Sutro+Baths+San+Francisco' },
+    { label: 'NPS', url: 'https://www.nps.gov/goga/planyourvisit/sutro.htm' },
+  ],
+
+  // ── SF · Meals ───────────────────────────────────────────────────────────
+  'sf:meal:1:easy': [
+    { label: 'Website', url: 'https://pizzeriadelfina.com' },
+    { label: 'Yelp', url: YELP + 'pizzeria-delfina-san-francisco-4' },
+  ],
+  'sf:meal:1:stretch': [
+    { label: 'Website', url: 'https://www.chefico.com' },
+    { label: 'Yelp', url: YELP + 'che-fico-san-francisco' },
+  ],
+  'sf:meal:2:easy': [
+    { label: 'Website', url: 'https://nopasf.com' },
+    { label: 'Yelp', url: YELP + 'nopa-san-francisco' },
+  ],
+  'sf:meal:2:stretch': [
+    { label: 'Website', url: 'https://frances-sf.com' },
+    { label: 'Yelp', url: YELP + 'frances-san-francisco' },
+  ],
+  'sf:meal:3:easy': [
+    { label: 'Website', url: 'https://cotognasf.com' },
+    { label: 'Yelp', url: YELP + 'cotogna-san-francisco' },
+  ],
+  'sf:meal:3:stretch': [
+    { label: 'Website', url: 'https://www.bixrestaurant.com' },
+    { label: 'Yelp', url: YELP + 'bix-san-francisco' },
+  ],
+
+  // ── SF · Bars ────────────────────────────────────────────────────────────
+  'sf:bar:wine': [
+    { label: 'Website', url: 'https://www.theriddlersf.com' },
+    { label: 'Yelp', url: YELP + 'the-riddler-san-francisco' },
+  ],
+  'sf:bar:cocktails': [
+    { label: 'Website', url: 'https://www.trickdogbar.com' },
+    { label: 'Yelp', url: YELP + 'trick-dog-san-francisco' },
+  ],
+  'sf:bar:beer': [
+    { label: 'Website', url: 'https://cellarmakerbrewing.com' },
+    { label: 'Yelp', url: YELP + 'cellarmaker-brewing-san-francisco' },
+  ],
+  'sf:bar:na': [
+    { label: 'Website', url: 'https://www.dandelionchocolate.com' },
+    { label: 'Yelp', url: YELP + 'dandelion-chocolate-san-francisco' },
+  ],
+  'sf:bar:coffee': [
+    { label: 'Website', url: 'https://sightglasscoffee.com' },
+    { label: 'Yelp', url: YELP + 'sightglass-coffee-san-francisco-2' },
+  ],
+  'sf:bar:surprise': [
+    { label: 'Maps', url: MAPS + 'Mano+Bar+Mission+San+Francisco' },
+  ],
+
+  // ── Oakland · Activities ──────────────────────────────────────────────────
+  'oak:activity:film:easy': [
+    { label: 'Website', url: 'https://thenewparkway.com' },
+    { label: 'Yelp', url: YELP + 'the-new-parkway-theater-oakland' },
+  ],
+  'oak:activity:film:spark': [
+    { label: 'Website', url: 'https://www.landmarktheatres.com/theater/grand-lake-theatre' },
+    { label: 'Yelp', url: YELP + 'grand-lake-theatre-oakland' },
+  ],
+  'oak:activity:film:stretch': [
+    { label: 'Website', url: 'https://www.paramounttheatre.com' },
+    { label: 'Yelp', url: YELP + 'paramount-theatre-oakland' },
+  ],
+  'oak:activity:music:easy': [
+    { label: 'Maps', url: MAPS + "Eli's+Mile+High+Club+Oakland" },
+    { label: 'Yelp', url: YELP + 'elis-mile-high-club-oakland' },
+  ],
+  'oak:activity:music:spark': [
+    { label: 'Website', url: 'https://www.starlinesocialclub.com' },
+    { label: 'Yelp', url: YELP + 'starline-social-club-oakland' },
+  ],
+  'oak:activity:music:stretch': [
+    { label: 'Website', url: 'https://www.thefoxoakland.com' },
+    { label: 'Yelp', url: YELP + 'the-fox-theater-oakland' },
+  ],
+  'oak:activity:food:easy': [
+    { label: 'Maps', url: MAPS + 'Temescal+Alley+Oakland' },
+  ],
+  'oak:activity:food:spark': [
+    { label: 'Website', url: 'https://www.swansmarket.com' },
+    { label: 'Yelp', url: YELP + 'swans-market-oakland' },
+  ],
+  'oak:activity:food:stretch': [
+    { label: 'Maps', url: MAPS + 'Grand+Lake+Farmers+Market+Oakland' },
+  ],
+  'oak:activity:art:easy': [
+    { label: 'Website', url: 'https://museumca.org' },
+    { label: 'Yelp', url: YELP + 'oakland-museum-of-california-oakland' },
+  ],
+  'oak:activity:art:spark': [
+    { label: 'Website', url: 'https://www.vesselgallery.com' },
+    { label: 'Yelp', url: YELP + 'vessel-gallery-oakland' },
+  ],
+  'oak:activity:art:stretch': [
+    { label: 'Website', url: 'https://www.oaklandfirstfridays.org' },
+    { label: 'Maps', url: MAPS + 'Uptown+Oakland+Art+District' },
+  ],
+  'oak:activity:outdoors:easy': [
+    { label: 'Maps', url: MAPS + 'Lake+Merritt+Oakland' },
+  ],
+  'oak:activity:outdoors:spark': [
+    { label: 'Website', url: 'https://www.ebparks.org/parks/redwood' },
+    { label: 'Maps', url: MAPS + 'Redwood+Regional+Park+Oakland' },
+  ],
+  'oak:activity:outdoors:stretch': [
+    { label: 'Maps', url: MAPS + 'Morcom+Amphitheatre+of+Roses+Oakland' },
+  ],
+  'oak:activity:games:easy': [
+    { label: 'Website', url: 'https://lostandfoundoakland.com' },
+    { label: 'Yelp', url: YELP + 'lost-and-found-oakland' },
+  ],
+  'oak:activity:games:spark': [
+    { label: 'Website', url: 'https://www.bowlkingpins.com' },
+    { label: 'Yelp', url: YELP + 'kingpins-oakland' },
+  ],
+  'oak:activity:games:stretch': [
+    { label: 'Maps', url: MAPS + 'The+Portal+Temescal+Oakland' },
+    { label: 'Yelp', url: YELP + 'the-portal-oakland' },
+  ],
+  'oak:activity:books:easy': [
+    { label: 'Website', url: 'https://www.pegasusbookstore.com' },
+    { label: 'Yelp', url: YELP + 'pegasus-books-oakland' },
+  ],
+  'oak:activity:books:spark': [
+    { label: 'Maps', url: MAPS + 'Dog+Eared+Books+Oakland' },
+  ],
+  'oak:activity:books:stretch': [
+    { label: 'Yelp', url: YELP + 'pendragon-books-oakland' },
+    { label: 'Maps', url: MAPS + 'Pendragon+Books+Rockridge+Oakland' },
+  ],
+  'oak:activity:wellness:easy': [
+    { label: 'Maps', url: MAPS + 'Lake+Merritt+Oakland' },
+  ],
+  'oak:activity:wellness:spark': [
+    { label: 'Website', url: 'https://www.ebparks.org/parks/joaquin' },
+    { label: 'Maps', url: MAPS + 'Joaquin+Miller+Park+Oakland' },
+  ],
+  'oak:activity:wellness:stretch': [
+    { label: 'Maps', url: MAPS + 'Temescal+Pool+Oakland' },
+  ],
+
+  // ── Oakland · Meals ───────────────────────────────────────────────────────
+  'oak:meal:1:easy': [
+    { label: 'Website', url: 'https://www.homeroom510.com' },
+    { label: 'Yelp', url: YELP + 'homeroom-oakland' },
+  ],
+  'oak:meal:1:stretch': [
+    { label: 'Website', url: 'https://shakewelloak.com' },
+    { label: 'Yelp', url: YELP + 'shakewell-oakland' },
+  ],
+  'oak:meal:2:easy': [
+    { label: 'Website', url: 'https://www.nidooakland.com' },
+    { label: 'Yelp', url: YELP + 'nido-oakland' },
+  ],
+  'oak:meal:2:stretch': [
+    { label: 'Website', url: 'https://www.duendeoakland.com' },
+    { label: 'Yelp', url: YELP + 'duende-oakland' },
+  ],
+  'oak:meal:3:easy': [
+    { label: 'Website', url: 'https://www.burdelloakland.com' },
+    { label: 'Yelp', url: YELP + 'burdell-oakland' },
+  ],
+  'oak:meal:3:stretch': [
+    { label: 'Website', url: 'https://www.commisrestaurant.com' },
+    { label: 'Yelp', url: YELP + 'commis-oakland' },
+  ],
+
+  // ── Oakland · Bars ────────────────────────────────────────────────────────
+  'oak:bar:wine': [
+    { label: 'Website', url: 'https://www.ordinairewine.com' },
+    { label: 'Yelp', url: YELP + 'ordinaire-wine-shop-and-bar-oakland' },
+  ],
+  'oak:bar:cocktails': [
+    { label: 'Maps', url: MAPS + 'Salsipuedes+Temescal+Oakland' },
+    { label: 'Yelp', url: YELP + 'salsipuedes-oakland' },
+  ],
+  'oak:bar:beer': [
+    { label: 'Website', url: 'https://www.temescalbrewing.com' },
+    { label: 'Yelp', url: YELP + 'temescal-brewing-oakland' },
+  ],
+  'oak:bar:na': [
+    { label: 'Website', url: 'https://www.timelesscoffee.com' },
+    { label: 'Yelp', url: YELP + 'timeless-coffee-roasters-and-espresso-bar-oakland' },
+  ],
+  'oak:bar:coffee': [
+    { label: 'Website', url: 'https://farleyseast.com' },
+    { label: 'Yelp', url: YELP + 'farleys-east-oakland' },
+  ],
+  'oak:bar:surprise': [
+    { label: 'Yelp', url: YELP + 'heinolds-first-and-last-chance-saloon-oakland' },
+    { label: 'Maps', url: MAPS + "Heinold's+First+and+Last+Chance+Oakland" },
+  ],
+};
+
+function getVenueLinks(cityKey: string, slot: string, ...keys: string[]): VenueLink[] {
+  return cityVenueLinks[`${cityKey}:${slot}:${keys.join(':')}`] ?? [];
+}
+
+function renderVenueLinks(links: VenueLink[]): string {
+  if (!links.length) return '';
+  return `<div class="venue-links">${links
+    .map(l => `<a href="${escapeAttr(l.url)}" target="_blank" rel="noopener noreferrer" class="venue-link">${escapeHtml(l.label)} ↗</a>`)
+    .join('')}</div>`;
+}
+
 // ——— Helper functions ———
 
 export function formatList(arr: string[]): string {
@@ -704,25 +1017,34 @@ export function renderIdeaCardsHtml(cards: IdeaCard[]): string {
 const styleKeys = ["easy", "spark", "stretch"];
 const ideaTitles = ["The easy opener", "The shared spark", "The make-it-a-night version"];
 
-function buildCityCard(
-  cityKey: string,
-  state: State,
-  index: number
-): { title: string; activity: string; bar?: string; meal?: string } {
+interface CityCard {
+  title: string;
+  activity: string;
+  activityLinks: VenueLink[];
+  bar?: string;
+  barLinks?: VenueLink[];
+  meal?: string;
+  mealLinks?: VenueLink[];
+}
+
+function buildCityCard(cityKey: string, state: State, index: number): CityCard {
   const city = cityVenues[cityKey];
   const budget = state.you.budget || "2";
   const drinkId = pickDrinkPreference(state);
   const styleKey = styleKeys[index];
   const interestId = pickAnchorInterest(index, state);
   const activity = city.activity[interestId]?.[styleKey] || city.activity.food[styleKey];
+  const activityLinks = getVenueLinks(cityKey, 'activity', interestId, styleKey);
 
   if (index === 1) {
     const bar = city.bar[drinkId] || city.bar.surprise;
-    return { title: ideaTitles[index], activity, bar };
+    const barLinks = getVenueLinks(cityKey, 'bar', drinkId);
+    return { title: ideaTitles[index], activity, activityLinks, bar, barLinks };
   }
   const mealKey = index === 0 ? "easy" : "stretch";
   const meal = city.meal[budget]?.[mealKey] || city.meal["2"][mealKey];
-  return { title: ideaTitles[index], activity, meal };
+  const mealLinks = getVenueLinks(cityKey, 'meal', budget, mealKey);
+  return { title: ideaTitles[index], activity, activityLinks, meal, mealLinks };
 }
 
 /** Render the city venue plan for one specific idea index (0 = easy, 1 = spark, 2 = stretch). */
@@ -742,8 +1064,14 @@ export function renderCityPlanHtml(cityKey: string, state: State, ideaIndex?: nu
             <p class="idea-kicker">Idea ${indices[i] + 1}</p>
             <h3>${escapeHtml(card.title)}</h3>
             <ul class="idea-list">
-              <li><strong>Activity:</strong> ${escapeHtml(card.activity)}</li>
-              <li><strong>${(card as { bar?: string }).bar ? "Bar stop" : "Meal"}:</strong> ${escapeHtml((card as { bar?: string; meal?: string }).bar || (card as { meal?: string }).meal || "")}</li>
+              <li>
+                <strong>Activity:</strong> ${escapeHtml(card.activity)}
+                ${renderVenueLinks(card.activityLinks)}
+              </li>
+              <li>
+                <strong>${card.bar ? 'Bar stop' : 'Dinner'}:</strong> ${escapeHtml(card.bar || card.meal || '')}
+                ${renderVenueLinks(card.bar ? (card.barLinks ?? []) : (card.mealLinks ?? []))}
+              </li>
             </ul>
           </article>`
           )
