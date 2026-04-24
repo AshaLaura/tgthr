@@ -567,7 +567,7 @@ export default function Home() {
       const cityBtn = target.closest('[data-city]') as HTMLElement | null;
       if (cityBtn) {
         const city = (cityBtn as HTMLElement).dataset.city!;
-        outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(city, stateRef.current, selectedCardIndex);
+        outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(city, stateRef.current, selectedCardIndex, cardsRef.current);
         outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }

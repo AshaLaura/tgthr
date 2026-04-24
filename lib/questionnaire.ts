@@ -1052,34 +1052,48 @@ function buildCityCard(cityKey: string, state: State, index: number): CityCard {
   return { title: ideaTitles[index], activity, activityLinks, meal, mealLinks };
 }
 
-/** Render the city venue plan for one specific idea index (0 = easy, 1 = spark, 2 = stretch). */
-export function renderCityPlanHtml(cityKey: string, state: State, ideaIndex?: number): string {
+/** Render the city venue plan for one specific idea index (0 = easy, 1 = spark, 2 = stretch).
+ *  Pass `genericCards` (from buildIdeaCard) to layer the original plan idea above each venue. */
+export function renderCityPlanHtml(
+  cityKey: string,
+  state: State,
+  ideaIndex?: number,
+  genericCards?: IdeaCard[]
+): string {
   const city = cityVenues[cityKey];
   const indices = ideaIndex !== undefined ? [ideaIndex] : [0, 1, 2];
-
-  const cards = indices.map((i) => buildCityCard(cityKey, state, i));
+  const cityCards = indices.map((i) => buildCityCard(cityKey, state, i));
 
   return `
       <h3 class="city-plan-heading">${escapeHtml(city.name)} Plan</h3>
       <div class="city-cards">
-        ${cards
-          .map(
-            (card, i) => `
+        ${cityCards.map((cityCard, i) => {
+          const generic = genericCards?.[indices[i]];
+          const slotLabel = cityCard.bar ? 'Bar stop' : 'Dinner';
+          const genericStop = generic ? (generic.bar || generic.meal || '') : '';
+          const cityStop   = cityCard.bar || cityCard.meal || '';
+          const stopLinks  = cityCard.bar ? (cityCard.barLinks ?? []) : (cityCard.mealLinks ?? []);
+
+          return `
           <article class="idea-card">
             <p class="idea-kicker">Idea ${indices[i] + 1}</p>
-            <h3>${escapeHtml(card.title)}</h3>
-            <ul class="idea-list">
-              <li>
-                <strong>Activity:</strong> ${escapeHtml(card.activity)}
-                ${renderVenueLinks(card.activityLinks)}
-              </li>
-              <li>
-                <strong>${card.bar ? 'Bar stop' : 'Dinner'}:</strong> ${escapeHtml(card.bar || card.meal || '')}
-                ${renderVenueLinks(card.bar ? (card.barLinks ?? []) : (card.mealLinks ?? []))}
-              </li>
-            </ul>
-          </article>`
-          )
-          .join("")}
+            <h3>${escapeHtml(cityCard.title)}</h3>
+            ${generic?.why ? `<p class="idea-why">${escapeHtml(generic.why)}</p>` : ''}
+
+            <div class="city-detail-block">
+              <p class="city-detail-label">Activity</p>
+              ${generic?.activity ? `<p class="city-detail-blueprint">${escapeHtml(generic.activity)}</p>` : ''}
+              <p class="city-detail-venue">${escapeHtml(cityCard.activity)}</p>
+              ${renderVenueLinks(cityCard.activityLinks)}
+            </div>
+
+            <div class="city-detail-block">
+              <p class="city-detail-label">${escapeHtml(slotLabel)}</p>
+              ${genericStop ? `<p class="city-detail-blueprint">${escapeHtml(genericStop)}</p>` : ''}
+              <p class="city-detail-venue">${escapeHtml(cityStop)}</p>
+              ${renderVenueLinks(stopLinks)}
+            </div>
+          </article>`;
+        }).join('')}
       </div>`;
 }

@@ -805,6 +805,40 @@ h2 {
   }
 }
 
+/* ── City plan detail blocks ─────────────────────────────────────────────── */
+
+.city-detail-block {
+  margin-top: 1.25rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--border);
+}
+
+.city-detail-label {
+  margin: 0 0 0.5rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+/* Generic blueprint — the "what kind of thing" description */
+.city-detail-blueprint {
+  margin: 0 0 0.6rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* Specific venue — the actual place */
+.city-detail-venue {
+  margin: 0 0 0.5rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
 /* ── Venue links (city plan cards) ───────────────────────────────────────── */
 
 .venue-links {
