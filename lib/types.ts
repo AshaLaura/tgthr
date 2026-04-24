@@ -6,6 +6,9 @@ export interface Profile {
   id: string
   display_name: string | null
   planning_style: 'surprise' | 'collaborative' | null
+  interests: string[]
+  drinks: string[]
+  diet_tags: string[]
   created_at: string
 }
 

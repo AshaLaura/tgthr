@@ -10,6 +10,27 @@ async function getAuthedSupabase() {
   return { supabase, user, error }
 }
 
+// GET /api/plans — fetch current user's saved plans
+export async function GET() {
+  const { supabase, user } = await getAuthedSupabase()
+
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { data, error } = await supabase
+    .from('plans')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.json(data)
+}
+
 // POST /api/plans — save a bookmarked idea as a plan
 export async function POST(request: NextRequest) {
   const { supabase, user } = await getAuthedSupabase()

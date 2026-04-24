@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createBrowserClient } from '@/lib/supabase'
 import AuthModal from './AuthModal'
 import type { User } from '@supabase/supabase-js'
@@ -56,36 +57,38 @@ export default function UserMenu() {
 
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginLeft: 'auto' }}>
-        <div
-          aria-hidden="true"
-          style={{
-            width: '32px',
-            height: '32px',
-            borderRadius: '50%',
-            background: 'var(--accent)',
-            color: '#1a1220',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            flexShrink: 0,
-          }}
-        >
-          {initial}
-        </div>
-        <span
-          style={{
-            fontSize: '0.85rem',
-            color: 'var(--muted)',
-            maxWidth: '120px',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {truncated}
-        </span>
+        <Link href="/profile" style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', textDecoration: 'none' }}>
+          <div
+            aria-hidden="true"
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              background: 'var(--accent)',
+              color: '#1a1220',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              flexShrink: 0,
+            }}
+          >
+            {initial}
+          </div>
+          <span
+            style={{
+              fontSize: '0.85rem',
+              color: 'var(--muted)',
+              maxWidth: '120px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {truncated}
+          </span>
+        </Link>
         <button
           type="button"
           className="btn ghost"

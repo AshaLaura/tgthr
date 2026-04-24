@@ -389,15 +389,22 @@ export default function Home() {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
-            // Save the name they typed in step 1 (update even if already set, so renames stick)
+            // Save name + preferences (always sync so profile stays current)
             const enteredName = s.you.name.trim();
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const prefUpdates: Record<string, any> = {
+              interests: s.you.interests,
+              drinks: s.you.drinks,
+              diet_tags: s.you.dietTags,
+            };
             if (enteredName && enteredName !== profile.display_name) {
-              fetch('/api/profile', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ display_name: enteredName }),
-              }).catch(() => {});
+              prefUpdates.display_name = enteredName;
             }
+            fetch('/api/profile', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(prefUpdates),
+            }).catch(() => {});
             if (!profile.planning_style) {
               setOnboardingOpen(true);
             }

@@ -31,7 +31,7 @@ export async function GET() {
   return NextResponse.json(data)
 }
 
-// PATCH /api/profile — update planning_style and/or display_name
+// PATCH /api/profile — update allowed profile fields
 export async function PATCH(request: NextRequest) {
   const { supabase, user } = await getAuthedSupabase()
 
@@ -42,12 +42,18 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json() as {
     planning_style?: 'surprise' | 'collaborative'
     display_name?: string
+    interests?: string[]
+    drinks?: string[]
+    diet_tags?: string[]
   }
 
-  // Only allow these two fields to be updated via this route
-  const updates: Record<string, string> = {}
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const updates: Record<string, any> = {}
   if (body.planning_style !== undefined) updates.planning_style = body.planning_style
-  if (body.display_name !== undefined) updates.display_name = body.display_name
+  if (body.display_name     !== undefined) updates.display_name  = body.display_name
+  if (body.interests        !== undefined) updates.interests      = body.interests
+  if (body.drinks           !== undefined) updates.drinks         = body.drinks
+  if (body.diet_tags        !== undefined) updates.diet_tags      = body.diet_tags
 
   if (Object.keys(updates).length === 0) {
     return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 })
