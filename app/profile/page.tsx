@@ -28,28 +28,49 @@ export default function ProfilePage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [authName, setAuthName] = useState<string>('')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
-        router.replace('/')
-        return
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.replace('/')
+          return
+        }
+        setAuthName(
+          user.user_metadata?.full_name ||
+          user.user_metadata?.name ||
+          user.email || ''
+        )
+
+        const [profileRes, plansRes] = await Promise.all([
+          fetch('/api/profile'),
+          fetch('/api/plans'),
+        ])
+
+        if (!profileRes.ok) {
+          const err = await profileRes.json().catch(() => ({}))
+          setError(err.error || 'Failed to load profile.')
+          return
+        }
+
+        const raw = await profileRes.json()
+        // Normalise — guard against columns not yet added via migration
+        setProfile({
+          ...raw,
+          interests: raw.interests ?? [],
+          drinks:    raw.drinks    ?? [],
+          diet_tags: raw.diet_tags ?? [],
+        })
+
+        if (plansRes.ok) setPlans(await plansRes.json())
+      } catch (e) {
+        setError('Something went wrong loading your profile.')
+        console.error(e)
+      } finally {
+        setLoading(false)
       }
-      setAuthName(
-        user.user_metadata?.full_name ||
-        user.user_metadata?.name ||
-        user.email || ''
-      )
-
-      const [profileRes, plansRes] = await Promise.all([
-        fetch('/api/profile'),
-        fetch('/api/plans'),
-      ])
-
-      if (profileRes.ok) setProfile(await profileRes.json())
-      if (plansRes.ok) setPlans(await plansRes.json())
-      setLoading(false)
     }
     load()
   }, [])
@@ -58,6 +79,22 @@ export default function ProfilePage() {
     return (
       <main style={{ padding: '2rem', color: 'var(--muted)', textAlign: 'center' }}>
         Loading…
+      </main>
+    )
+  }
+
+  if (error) {
+    return (
+      <main style={{ padding: '2rem', color: 'var(--muted)', textAlign: 'center' }}>
+        <p>{error}</p>
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={() => router.push('/')}
+          style={{ marginTop: '1rem' }}
+        >
+          ← Back to home
+        </button>
       </main>
     )
   }
