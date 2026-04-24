@@ -29,7 +29,12 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   if (!isOpen || !mounted) return null
 
+  function notifyBeforeSignIn() {
+    window.dispatchEvent(new CustomEvent('tgthr:before-signin'))
+  }
+
   async function handleGoogle() {
+    notifyBeforeSignIn()
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: siteOrigin() + '/auth/callback' },
@@ -38,6 +43,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault()
+    notifyBeforeSignIn()
     setLoading(true)
     await supabase.auth.signInWithOtp({
       email,

@@ -521,6 +521,47 @@ export default function Home() {
     });
 
     btnRestartRef.current!.addEventListener('click', resetAll);
+
+    // — save + restore state across auth redirect —
+
+    function saveStateForRestore() {
+      const panel = !outroRef.current!.classList.contains('hidden') ? 'outro'
+        : !panelFlowRef.current!.classList.contains('hidden') ? 'flow'
+        : 'landing';
+      if (panel === 'landing') return;
+      sessionStorage.setItem('tgthr_restore', JSON.stringify({
+        panel,
+        state: stateRef.current,
+        stepIndex: stepIndexRef.current,
+      }));
+    }
+    window.addEventListener('tgthr:before-signin', saveStateForRestore);
+
+    // On mount: if we have saved state and user just came back from auth, restore it
+    const savedRestore = sessionStorage.getItem('tgthr_restore');
+    if (savedRestore) {
+      supabase.auth.getUser().then(async ({ data: { user } }) => {
+        if (!user) return;
+        try {
+          const { panel, state: savedState, stepIndex } = JSON.parse(savedRestore);
+          sessionStorage.removeItem('tgthr_restore');
+          stateRef.current = savedState;
+          if (panel === 'outro') {
+            await finish();
+          } else if (panel === 'flow') {
+            stepIndexRef.current = stepIndex ?? 0;
+            show(panelFlowRef.current!);
+            render();
+          }
+        } catch {
+          sessionStorage.removeItem('tgthr_restore');
+        }
+      });
+    }
+
+    return () => {
+      window.removeEventListener('tgthr:before-signin', saveStateForRestore);
+    };
   }, []);
 
   return (
