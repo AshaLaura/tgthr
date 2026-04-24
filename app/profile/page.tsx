@@ -2,11 +2,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase'
-import {
-  interestMeta,
-  drinkMeta,
-  dietOptionMeta,
-} from '@/lib/questionnaire'
+import { interestMeta, drinkMeta, dietOptionMeta } from '@/lib/questionnaire'
+import { generateBio } from '@/lib/bio'
 import type { IdeaCard } from '@/lib/questionnaire'
 
 interface Profile {
@@ -22,34 +19,6 @@ interface Plan {
   id: string
   plan_output: IdeaCard[]
   created_at: string
-}
-
-function generateBio(profile: Profile): string {
-  const parts: string[] = []
-
-  const interestLabels = interestMeta
-    .filter(m => profile.interests.includes(m.id))
-    .map(m => m.label.toLowerCase())
-  if (interestLabels.length) {
-    if (interestLabels.length === 1) parts.push(`Into ${interestLabels[0]}`)
-    else parts.push(`Into ${interestLabels.slice(0, -1).join(', ')} and ${interestLabels.slice(-1)[0]}`)
-  }
-
-  const drinkLabels = drinkMeta
-    .filter(m => profile.drinks.includes(m.id))
-    .map(m => m.label.toLowerCase())
-  if (drinkLabels.length) {
-    parts.push(`Prefers ${drinkLabels.join(' or ')}`)
-  }
-
-  const dietLabels = dietOptionMeta
-    .filter(m => profile.diet_tags.includes(m.id))
-    .map(m => m.label.toLowerCase())
-  if (dietLabels.length) {
-    parts.push(dietLabels.join(', '))
-  }
-
-  return parts.join('. ') + (parts.length ? '.' : '')
 }
 
 export default function ProfilePage() {
@@ -96,7 +65,7 @@ export default function ProfilePage() {
   if (!profile) return null
 
   const displayName = profile.display_name || authName || 'You'
-  const bio = generateBio(profile)
+  const bio = generateBio(profile.interests, profile.drinks, profile.diet_tags)
   const hasPrefs = profile.interests.length > 0 || profile.drinks.length > 0 || profile.diet_tags.length > 0
 
   return (
