@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { questionnaire_data, plan_output } = body
+  const { questionnaire_data, plan_output, city } = body
 
   if (!questionnaire_data || !plan_output) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -52,6 +52,7 @@ export async function POST(request: NextRequest) {
       user_id: user.id,
       questionnaire_data,
       plan_output,
+      city: city ?? null,
       status: 'draft',
     })
     .select()

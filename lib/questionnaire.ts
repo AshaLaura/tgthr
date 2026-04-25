@@ -759,6 +759,7 @@ export interface IdeaCard {
   bar?: string;
   meal?: string;
   why: string;
+  ideaIndex?: number;
 }
 
 export function buildIdeaCard(
@@ -1021,6 +1022,17 @@ export function renderIdeaCardsHtml(cards: IdeaCard[]): string {
 
 const styleKeys = ["easy", "spark", "stretch"];
 const ideaTitles = ["The easy opener", "The shared spark", "The make-it-a-night version"];
+const ideaWhys = [
+  "Best when you want the night to feel natural fast, with enough structure to remove awkwardness without overproducing it.",
+  "Best when you want a little more momentum and chemistry, while still staying grounded in what you actually share.",
+  "Best when you want the plan to feel more intentional and memorable, with room for the night to open up.",
+];
+
+export function buildAllIdeaCards(state: State): IdeaCard[] {
+  return styleKeys.map((key, i) =>
+    buildIdeaCard(key, ideaTitles[i], i, ideaWhys[i], state)
+  );
+}
 
 interface CityCard {
   title: string;

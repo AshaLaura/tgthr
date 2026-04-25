@@ -876,12 +876,19 @@ h2 {
 }
 
 .tm-events-heading {
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.35rem;
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.1em;
   font-size: 0.68rem;
   font-weight: 600;
+}
+
+.tm-events-context {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .tm-event-list {
@@ -948,6 +955,19 @@ h2 {
 
 .tm-event-link:hover {
   text-decoration: underline;
+}
+
+/* ── City plan save button ───────────────────────────────────────────────── */
+
+.city-plan-actions {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.city-plan-save.is-saved {
+  opacity: 0.65;
+  cursor: default;
 }
 
 /* ── Loading dots ─────────────────────────────────────────────────────────── */

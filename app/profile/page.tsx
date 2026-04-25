@@ -19,9 +19,12 @@ interface Profile {
 
 interface Plan {
   id: string
+  city: 'sf' | 'oak' | null
   plan_output: IdeaCard[]
   created_at: string
 }
+
+const CITY_LABELS: Record<string, string> = { sf: 'San Francisco', oak: 'Oakland' }
 
 const pillStyle: React.CSSProperties = {
   padding: '0.4rem 0.85rem',
@@ -336,26 +339,54 @@ export default function ProfilePage() {
             const card = plan.plan_output?.[0]
             if (!card) return null
             return (
-              <div key={plan.id} style={{
-                padding: '1rem 1.1rem',
-                borderRadius: 'var(--radius)',
-                border: '1px solid rgba(232, 180, 160, 0.18)',
-                background: 'rgba(255,255,255,0.03)',
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
-                gap: '0.75rem',
-              }}>
+              <button
+                key={plan.id}
+                type="button"
+                onClick={() => router.push(`/plan/${plan.id}`)}
+                style={{
+                  width: '100%',
+                  textAlign: 'left',
+                  padding: '1rem 1.1rem',
+                  borderRadius: 'var(--radius)',
+                  border: '1px solid rgba(232, 180, 160, 0.18)',
+                  background: 'rgba(255,255,255,0.03)',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem',
+                  transition: 'border-color 0.15s',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(232,180,160,0.45)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(232,180,160,0.18)')}
+              >
                 <div style={{ minWidth: 0 }}>
                   <p style={{ margin: '0 0 0.2rem', fontWeight: 600, fontSize: '0.95rem', color: 'var(--text)' }}>
                     {card.title}
                   </p>
-                  <p style={{ margin: 0, color: 'var(--muted)', fontSize: '0.825rem' }}>
+                  <p style={{ margin: '0 0 0.4rem', color: 'var(--muted)', fontSize: '0.825rem' }}>
                     {card.activity}
                   </p>
+                  {plan.city && (
+                    <span style={{
+                      display: 'inline-block',
+                      fontSize: '0.72rem',
+                      fontWeight: 600,
+                      color: 'var(--accent)',
+                      background: 'rgba(232,180,160,0.1)',
+                      border: '1px solid rgba(232,180,160,0.25)',
+                      borderRadius: '999px',
+                      padding: '0.15rem 0.55rem',
+                      letterSpacing: '0.04em',
+                    }}>
+                      {CITY_LABELS[plan.city] ?? plan.city}
+                    </span>
+                  )}
                 </div>
-                <span style={{ color: 'var(--accent)', fontSize: '1rem', flexShrink: 0, marginTop: '2px' }}>🔖</span>
-              </div>
+                <span style={{ color: 'var(--accent)', fontSize: '0.8rem', flexShrink: 0, marginTop: '3px', whiteSpace: 'nowrap' }}>
+                  View →
+                </span>
+              </button>
             )
           })}
         </div>

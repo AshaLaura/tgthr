@@ -25,10 +25,17 @@ import {
   pickAnchorInterest,
   escapeHtml,
   escapeAttr,
+  buildAllIdeaCards,
 } from '@/lib/questionnaire';
 import type { TmEvent } from '@/lib/ticketmaster';
 
-function renderEventsHtml(events: TmEvent[]): string {
+const EVENTS_CONTEXT: Partial<Record<string, string>> = {
+  music: 'You listed music as an interest — these live shows are happening nearby within the next two weeks.',
+  art: 'Since comedy is part of your vibe, here are some shows near you in the next two weeks.',
+}
+
+function renderEventsHtml(events: TmEvent[], anchorInterest: string): string {
+  const context = EVENTS_CONTEXT[anchorInterest] ?? ''
   const items = events.map((ev) => {
     const date = ev.date
       ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
@@ -55,6 +62,7 @@ function renderEventsHtml(events: TmEvent[]): string {
   return `
     <div class="tm-events">
       <p class="tm-events-heading">Upcoming Events</p>
+      ${context ? `<p class="tm-events-context">${escapeHtml(context)}</p>` : ''}
       <div class="tm-event-list">${items.join('')}</div>
     </div>`;
 }
@@ -600,9 +608,16 @@ export default function Home() {
 
       // City selection — show only the city plan for the chosen idea
       const cityBtn = target.closest('[data-city]') as HTMLElement | null;
-      if (cityBtn) {
+      if (cityBtn && !cityBtn.classList.contains('city-switch-btn')) {
         const city = (cityBtn as HTMLElement).dataset.city!;
         outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(city, stateRef.current, selectedCardIndex, cardsRef.current);
+
+        // Save button
+        const saveWrapper = document.createElement('div');
+        saveWrapper.className = 'city-plan-actions';
+        saveWrapper.innerHTML = `<button class="btn primary city-plan-save" data-city="${city}" data-idea-index="${selectedCardIndex}" type="button">Save this plan</button>`;
+        outroCityPlanRef.current!.appendChild(saveWrapper);
+
         outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
         // Async: enrich the activity block with real Ticketmaster events (fire-and-forget)
@@ -617,15 +632,45 @@ export default function Home() {
             if (!events?.length) return;
             const card = outroCityPlanRef.current?.querySelector('.idea-card');
             if (!card) return;
-            // Insert after the first city-detail-block (the activity block)
             const activityBlock = card.querySelector('.city-detail-block');
             if (!activityBlock) return;
             const wrapper = document.createElement('div');
-            wrapper.innerHTML = renderEventsHtml(events);
+            wrapper.innerHTML = renderEventsHtml(events, anchorInterest);
             activityBlock.after(wrapper.firstElementChild!);
           })
           .catch(() => { /* non-critical */ });
 
+        return;
+      }
+
+      // Save city plan
+      const savePlanBtn = target.closest('.city-plan-save') as HTMLElement | null;
+      if (savePlanBtn) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setAuthModalOpen(true); return; }
+
+        const cityToSave = savePlanBtn.dataset.city!;
+        const ideaIdx = parseInt(savePlanBtn.dataset.ideaIndex ?? '0', 10);
+        const card = { ...cardsRef.current[ideaIdx], ideaIndex: ideaIdx };
+
+        savePlanBtn.textContent = 'Saving…';
+        savePlanBtn.setAttribute('disabled', 'true');
+        try {
+          await fetch('/api/plans', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              questionnaire_data: stateRef.current,
+              plan_output: [card],
+              city: cityToSave,
+            }),
+          });
+          savePlanBtn.textContent = 'Saved ✓';
+          savePlanBtn.classList.add('is-saved');
+        } catch {
+          savePlanBtn.textContent = 'Save this plan';
+          savePlanBtn.removeAttribute('disabled');
+        }
         return;
       }
     });
