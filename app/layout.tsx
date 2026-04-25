@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import UserMenu from "@/components/UserMenu";
+import PostHogProvider from "@/components/PostHogProvider";
 
 export const metadata: Metadata = {
   title: "TGTHR — Your date night concierge",
@@ -23,16 +25,20 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <div className="grain" aria-hidden="true"></div>
-        <header className="site-header">
-          <p className="logo">TGTHR</p>
-          <p className="tag">Date night, composed.</p>
-          <UserMenu />
-        </header>
-        {children}
-        <footer className="site-footer">
-          <p>TGTHR · A small reminder that dating can be intentional again.</p>
-        </footer>
+        <Suspense>
+          <PostHogProvider>
+            <div className="grain" aria-hidden="true"></div>
+            <header className="site-header">
+              <p className="logo">TGTHR</p>
+              <p className="tag">Date night, composed.</p>
+              <UserMenu />
+            </header>
+            {children}
+            <footer className="site-footer">
+              <p>TGTHR · A small reminder that dating can be intentional again.</p>
+            </footer>
+          </PostHogProvider>
+        </Suspense>
       </body>
     </html>
   );
