@@ -35,7 +35,18 @@ export default function UserMenu() {
       if (session?.user) loadProfile()
       else setDisplayName('')
     })
-    return () => subscription.unsubscribe()
+
+    // Update header name immediately when user saves a new name on the profile page
+    function onProfileUpdated(e: Event) {
+      const detail = (e as CustomEvent<{ display_name: string }>).detail
+      if (detail?.display_name) setDisplayName(detail.display_name)
+    }
+    window.addEventListener('tgthr:profile-updated', onProfileUpdated)
+
+    return () => {
+      subscription.unsubscribe()
+      window.removeEventListener('tgthr:profile-updated', onProfileUpdated)
+    }
   }, [])
 
   async function signOut() {

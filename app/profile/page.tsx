@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@/lib/supabase'
 import { interestMeta, drinkMeta, dietOptionMeta } from '@/lib/questionnaire'
@@ -23,6 +23,24 @@ interface Plan {
   created_at: string
 }
 
+const pillStyle: React.CSSProperties = {
+  padding: '0.4rem 0.85rem',
+  borderRadius: '999px',
+  border: '1px solid rgba(232, 180, 160, 0.35)',
+  color: 'var(--accent)',
+  fontSize: '0.85rem',
+  background: 'rgba(232, 180, 160, 0.07)',
+}
+
+const sectionLabelStyle: React.CSSProperties = {
+  margin: '0 0 0.75rem',
+  color: 'var(--accent)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.1em',
+  fontSize: '0.68rem',
+  fontWeight: 600,
+}
+
 export default function ProfilePage() {
   const router = useRouter()
   const supabase = createBrowserClient()
@@ -31,6 +49,13 @@ export default function ProfilePage() {
   const [authName, setAuthName] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Name editing
+  const [editingName, setEditingName] = useState(false)
+  const [nameInput, setNameInput] = useState('')
+  const [nameSaving, setNameSaving] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -59,7 +84,6 @@ export default function ProfilePage() {
       }
 
       const raw = await profileRes.json()
-      // Normalise — guard against columns not yet added via migration
       setProfile({
         ...raw,
         interests: raw.interests ?? [],
@@ -78,15 +102,59 @@ export default function ProfilePage() {
 
   useEffect(() => { load() }, [])
 
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (editingName) nameInputRef.current?.focus()
+  }, [editingName])
+
+  function startEditing(currentName: string) {
+    setNameInput(currentName)
+    setNameError(null)
+    setEditingName(true)
+  }
+
+  function cancelEditing() {
+    setEditingName(false)
+    setNameError(null)
+  }
+
+  async function saveName() {
+    const trimmed = nameInput.trim()
+    if (!trimmed) {
+      setNameError('Name can\'t be empty.')
+      return
+    }
+    setNameSaving(true)
+    setNameError(null)
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ display_name: trimmed }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        setNameError(err.error || 'Failed to save.')
+        return
+      }
+      const updated = await res.json()
+      setProfile(prev => prev ? { ...prev, display_name: updated.display_name } : prev)
+      setEditingName(false)
+      // Notify the header UserMenu so it updates without a full page reload
+      window.dispatchEvent(new CustomEvent('tgthr:profile-updated', {
+        detail: { display_name: updated.display_name }
+      }))
+    } catch {
+      setNameError('Something went wrong. Try again.')
+    } finally {
+      setNameSaving(false)
+    }
+  }
+
   if (loading) return <LoadingState message="Pulling up your profile…" />
 
   if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={load}
-      />
-    )
+    return <ErrorState message={error} onRetry={load} />
   }
 
   if (!profile) return null
@@ -112,17 +180,94 @@ export default function ProfilePage() {
       </button>
 
       {/* Name + bio */}
-      <h1 style={{
-        fontFamily: 'var(--font-display)',
-        fontStyle: 'italic',
-        fontSize: '2rem',
-        fontWeight: 400,
-        margin: '0 0 0.5rem',
-        color: 'var(--text)',
-      }}>
-        {displayName}
-      </h1>
-      {bio && (
+      {editingName ? (
+        <div style={{ marginBottom: '1.75rem' }}>
+          <input
+            ref={nameInputRef}
+            type="text"
+            value={nameInput}
+            onChange={e => setNameInput(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') saveName()
+              if (e.key === 'Escape') cancelEditing()
+            }}
+            maxLength={80}
+            style={{
+              width: '100%',
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: '2rem',
+              fontWeight: 400,
+              color: 'var(--text)',
+              background: 'transparent',
+              border: 'none',
+              borderBottom: '1px solid var(--accent)',
+              outline: 'none',
+              padding: '0 0 0.25rem',
+              marginBottom: '0.75rem',
+            }}
+          />
+          {nameError && (
+            <p style={{ margin: '0 0 0.5rem', color: 'var(--accent)', fontSize: '0.8rem' }}>
+              {nameError}
+            </p>
+          )}
+          <div style={{ display: 'flex', gap: '0.6rem' }}>
+            <button
+              type="button"
+              className="btn primary"
+              onClick={saveName}
+              disabled={nameSaving}
+              style={{ fontSize: '0.8rem', padding: '0.4rem 1rem' }}
+            >
+              {nameSaving ? 'Saving…' : 'Save'}
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={cancelEditing}
+              disabled={nameSaving}
+              style={{ fontSize: '0.8rem', padding: '0.4rem 0.85rem' }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : (
+        <div style={{ marginBottom: bio ? '0.5rem' : '1.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem' }}>
+            <h1 style={{
+              fontFamily: 'var(--font-display)',
+              fontStyle: 'italic',
+              fontSize: '2rem',
+              fontWeight: 400,
+              margin: 0,
+              color: 'var(--text)',
+            }}>
+              {displayName}
+            </h1>
+            <button
+              type="button"
+              onClick={() => startEditing(displayName)}
+              aria-label="Edit name"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--muted)',
+                cursor: 'pointer',
+                padding: '0.2rem',
+                fontSize: '0.85rem',
+                lineHeight: 1,
+                flexShrink: 0,
+              }}
+            >
+              ✏︎
+            </button>
+          </div>
+        </div>
+      )}
+
+      {bio && !editingName && (
         <p style={{ margin: '0 0 1.75rem', color: 'var(--muted)', fontSize: '0.9rem', lineHeight: 1.5 }}>
           {bio}
         </p>
@@ -136,86 +281,35 @@ export default function ProfilePage() {
         </p>
       ) : (
         <>
-          {/* Vibes */}
           {profile.interests.length > 0 && (
             <section style={{ marginBottom: '1.75rem' }}>
-              <p style={{
-                margin: '0 0 0.75rem',
-                color: 'var(--accent)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontSize: '0.68rem',
-                fontWeight: 600,
-              }}>Vibes</p>
+              <p style={sectionLabelStyle}>Vibes</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {interestMeta
                   .filter(m => profile.interests.includes(m.id))
-                  .map(m => (
-                    <span key={m.id} style={{
-                      padding: '0.4rem 0.85rem',
-                      borderRadius: '999px',
-                      border: '1px solid rgba(232, 180, 160, 0.35)',
-                      color: 'var(--accent)',
-                      fontSize: '0.85rem',
-                      background: 'rgba(232, 180, 160, 0.07)',
-                    }}>{m.label}</span>
-                  ))}
+                  .map(m => <span key={m.id} style={pillStyle}>{m.label}</span>)}
               </div>
             </section>
           )}
 
-          {/* Drinking */}
           {profile.drinks.length > 0 && (
             <section style={{ marginBottom: '1.75rem' }}>
-              <p style={{
-                margin: '0 0 0.75rem',
-                color: 'var(--accent)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontSize: '0.68rem',
-                fontWeight: 600,
-              }}>Drinking</p>
+              <p style={sectionLabelStyle}>Drinking</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {drinkMeta
                   .filter(m => profile.drinks.includes(m.id))
-                  .map(m => (
-                    <span key={m.id} style={{
-                      padding: '0.4rem 0.85rem',
-                      borderRadius: '999px',
-                      border: '1px solid rgba(232, 180, 160, 0.35)',
-                      color: 'var(--accent)',
-                      fontSize: '0.85rem',
-                      background: 'rgba(232, 180, 160, 0.07)',
-                    }}>{m.label}</span>
-                  ))}
+                  .map(m => <span key={m.id} style={pillStyle}>{m.label}</span>)}
               </div>
             </section>
           )}
 
-          {/* Dietary */}
           {profile.diet_tags.length > 0 && (
             <section style={{ marginBottom: '1.75rem' }}>
-              <p style={{
-                margin: '0 0 0.75rem',
-                color: 'var(--accent)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontSize: '0.68rem',
-                fontWeight: 600,
-              }}>Dietary</p>
+              <p style={sectionLabelStyle}>Dietary</p>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                 {dietOptionMeta
                   .filter(m => profile.diet_tags.includes(m.id))
-                  .map(m => (
-                    <span key={m.id} style={{
-                      padding: '0.4rem 0.85rem',
-                      borderRadius: '999px',
-                      border: '1px solid rgba(232, 180, 160, 0.35)',
-                      color: 'var(--accent)',
-                      fontSize: '0.85rem',
-                      background: 'rgba(232, 180, 160, 0.07)',
-                    }}>{m.label}</span>
-                  ))}
+                  .map(m => <span key={m.id} style={pillStyle}>{m.label}</span>)}
               </div>
             </section>
           )}
@@ -226,14 +320,7 @@ export default function ProfilePage() {
       <hr style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0 0 1.5rem' }} />
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '1rem' }}>
-        <p style={{
-          margin: 0,
-          color: 'var(--accent)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.1em',
-          fontSize: '0.68rem',
-          fontWeight: 600,
-        }}>Saved Ideas</p>
+        <p style={{ ...sectionLabelStyle, margin: 0 }}>Saved Ideas</p>
         {plans.length > 0 && (
           <span style={{ color: 'var(--accent)', fontSize: '0.8rem' }}>{plans.length} saved</span>
         )}
