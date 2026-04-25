@@ -34,6 +34,13 @@ const EVENTS_CONTEXT: Partial<Record<string, string>> = {
   art: 'Since comedy is part of your vibe, here are some shows near you in the next two weeks.',
 }
 
+function formatPriceRange(min?: number, max?: number): string {
+  if (min == null) return ''
+  const lo = `$${Math.round(min)}`
+  if (max == null || Math.round(max) === Math.round(min)) return lo
+  return `${lo} – $${Math.round(max)}`
+}
+
 function renderEventsHtml(events: TmEvent[], anchorInterest: string): string {
   const context = EVENTS_CONTEXT[anchorInterest] ?? ''
   const items = events.map((ev) => {
@@ -41,10 +48,8 @@ function renderEventsHtml(events: TmEvent[], anchorInterest: string): string {
       ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
       : '';
     const meta = [date, ev.venue].filter(Boolean).join(' · ');
-    const price =
-      ev.priceMin != null
-        ? `<p class="tm-event-price">Tickets from $${Math.round(ev.priceMin)}</p>`
-        : '';
+    const priceStr = formatPriceRange(ev.priceMin, ev.priceMax)
+    const price = priceStr ? `<p class="tm-event-price">${escapeHtml(priceStr)} per ticket</p>` : '';
     const img = ev.imageUrl
       ? `<img src="${escapeAttr(ev.imageUrl)}" class="tm-event-img" alt="" loading="lazy" />`
       : '';
@@ -625,7 +630,7 @@ export default function Home() {
         fetch('/api/generate-plan', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ anchorInterest, city }),
+          body: JSON.stringify({ anchorInterest, city, budgetTier: stateRef.current.you.budget }),
         })
           .then((r) => r.json())
           .then(({ events }: { events: TmEvent[] }) => {

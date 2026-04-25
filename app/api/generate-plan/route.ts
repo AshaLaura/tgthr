@@ -17,11 +17,13 @@ const INTEREST_KEYWORD: Partial<Record<string, string>> = {
 export async function POST(request: NextRequest) {
   let anchorInterest: string
   let city: string
+  let budgetTier: '1' | '2' | '3' | undefined
 
   try {
     const body = await request.json()
     anchorInterest = body.anchorInterest
     city = body.city
+    budgetTier = body.budgetTier
   } catch {
     return NextResponse.json({ events: [] })
   }
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
   end.setDate(today.getDate() + 14)
   const endDate = end.toISOString().split('T')[0]
 
-  const events = await searchEvents({ keyword, latlong, radius: 25, startDate, endDate })
+  const events = await searchEvents({ keyword, latlong, radius: 25, startDate, endDate, budgetTier })
 
   return NextResponse.json({ events: events.slice(0, 3) })
 }

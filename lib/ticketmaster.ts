@@ -22,6 +22,15 @@ export interface SearchEventsParams {
   /** ISO date string e.g. "2026-04-25" */
   startDate?: string
   endDate?: string
+  /** Questionnaire budget tier: '1' = $, '2' = $$, '3' = $$$ */
+  budgetTier?: '1' | '2' | '3'
+}
+
+// Max ticket price (priceMin) we're willing to show per budget tier.
+// Events with no price data are always included.
+const BUDGET_CAPS: Record<string, number> = {
+  '1': 50,
+  '2': 125,
 }
 
 // ── Raw API shapes (minimal) ──────────────────────────────────────────────────
@@ -134,8 +143,13 @@ export const searchEvents = cache(async (params: SearchEventsParams): Promise<Tm
     }
 
     const json = await res.json()
-    const events: TmRawEvent[] = json._embedded?.events ?? []
-    return events.filter(isAllowed).map(normalize)
+    const raw: TmRawEvent[] = json._embedded?.events ?? []
+    const normalized = raw.filter(isAllowed).map(normalize)
+
+    const cap = params.budgetTier ? BUDGET_CAPS[params.budgetTier] : undefined
+    if (cap == null) return normalized
+    // Keep events where price is unknown (no priceMin) OR priceMin is within cap
+    return normalized.filter((ev) => ev.priceMin == null || ev.priceMin <= cap)
   } catch (err) {
     console.error('[ticketmaster] fetch failed:', err)
     return []
