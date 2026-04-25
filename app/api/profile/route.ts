@@ -28,6 +28,15 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Lazy-backfill email for users created before the email column existed
+  if (!data.email && user.email) {
+    await supabase
+      .from('profiles')
+      .update({ email: user.email })
+      .eq('id', user.id)
+    data.email = user.email
+  }
+
   return NextResponse.json(data)
 }
 
