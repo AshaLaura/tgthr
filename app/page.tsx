@@ -22,7 +22,42 @@ import {
   renderIdeaCardsHtml,
   renderCityPlanHtml,
   buildIdeaCard,
+  pickAnchorInterest,
+  escapeHtml,
+  escapeAttr,
 } from '@/lib/questionnaire';
+import type { TmEvent } from '@/lib/ticketmaster';
+
+function renderEventsHtml(events: TmEvent[]): string {
+  const items = events.map((ev) => {
+    const date = ev.date
+      ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+      : '';
+    const meta = [date, ev.venue].filter(Boolean).join(' · ');
+    const price =
+      ev.priceMin != null
+        ? `<p class="tm-event-price">Tickets from $${Math.round(ev.priceMin)}</p>`
+        : '';
+    const img = ev.imageUrl
+      ? `<img src="${escapeAttr(ev.imageUrl)}" class="tm-event-img" alt="" loading="lazy" />`
+      : '';
+    return `
+      <div class="tm-event">
+        ${img}
+        <div class="tm-event-body">
+          <p class="tm-event-name">${escapeHtml(ev.name)}</p>
+          ${meta ? `<p class="tm-event-meta">${escapeHtml(meta)}</p>` : ''}
+          ${price}
+          <a href="${escapeAttr(ev.url)}" class="tm-event-link" target="_blank" rel="noopener noreferrer">Get Tickets →</a>
+        </div>
+      </div>`;
+  });
+  return `
+    <div class="tm-events">
+      <p class="tm-events-heading">Upcoming Events</p>
+      <div class="tm-event-list">${items.join('')}</div>
+    </div>`;
+}
 
 export default function Home() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -569,6 +604,28 @@ export default function Home() {
         const city = (cityBtn as HTMLElement).dataset.city!;
         outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(city, stateRef.current, selectedCardIndex, cardsRef.current);
         outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+        // Async: enrich the activity block with real Ticketmaster events (fire-and-forget)
+        const anchorInterest = pickAnchorInterest(selectedCardIndex, stateRef.current);
+        fetch('/api/generate-plan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ anchorInterest, city }),
+        })
+          .then((r) => r.json())
+          .then(({ events }: { events: TmEvent[] }) => {
+            if (!events?.length) return;
+            const card = outroCityPlanRef.current?.querySelector('.idea-card');
+            if (!card) return;
+            // Insert after the first city-detail-block (the activity block)
+            const activityBlock = card.querySelector('.city-detail-block');
+            if (!activityBlock) return;
+            const wrapper = document.createElement('div');
+            wrapper.innerHTML = renderEventsHtml(events);
+            activityBlock.after(wrapper.firstElementChild!);
+          })
+          .catch(() => { /* non-critical */ });
+
         return;
       }
     });
