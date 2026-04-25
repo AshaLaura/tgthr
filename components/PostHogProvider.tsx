@@ -4,7 +4,7 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import posthog from 'posthog-js'
 import { PostHogProvider as PHProvider } from 'posthog-js/react'
 
-const key  = process.env.NEXT_PUBLIC_POSTHOG_KEY  ?? ''
+const key  = process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN ?? ''
 const host = process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
 
 function PostHogPageView() {
@@ -16,6 +16,7 @@ function PostHogPageView() {
     if (!posthog.__loaded) {
       posthog.init(key, {
         api_host: host,
+        defaults: '2026-01-30',
         capture_pageview: false,   // we fire manually below
         capture_pageleave: true,
         person_profiles: 'identified_only',
