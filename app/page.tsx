@@ -816,22 +816,27 @@ export default function Home() {
         ></p>
 
         <div className="flow-nav">
-          <button
-            type="button"
-            className="btn ghost"
-            id="btn-flow-back"
-            ref={btnFlowBackRef}
-          >
-            Back
-          </button>
-          <button
-            type="button"
-            className="btn primary"
-            id="btn-flow-next"
-            ref={btnFlowNextRef}
-          >
-            Next
-          </button>
+          <div className="cta-inner">
+            <button
+              type="button"
+              className="btn ghost"
+              id="btn-flow-back"
+              ref={btnFlowBackRef}
+              aria-label="Back"
+            >
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M12.5 15L7.5 10L12.5 5" stroke="#a89bb8" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              id="btn-flow-next"
+              ref={btnFlowNextRef}
+            >
+              Next
+            </button>
+          </div>
         </div>
       </section>
 

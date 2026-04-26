@@ -29,8 +29,10 @@ export default function RootLayout({
           <PostHogProvider>
             <div className="grain" aria-hidden="true"></div>
             <header className="site-header">
-              <p className="logo">TGTHR</p>
-              <p className="tag">Date night, composed.</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1px' }}>
+                <p className="logo">TGTHR</p>
+                <p className="tag">Date night, composed.</p>
+              </div>
               <UserMenu />
             </header>
             {children}
