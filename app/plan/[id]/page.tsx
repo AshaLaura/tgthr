@@ -96,7 +96,7 @@ export default function PlanPage({ params }: { params: Promise<{ id: string }> }
         setLoading(false)
       })
       .catch(() => {
-        setError('This plan couldn't be loaded.')
+        setError("This plan couldn't be loaded.")
         setLoading(false)
       })
   }, [id])
