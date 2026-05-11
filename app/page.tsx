@@ -625,7 +625,7 @@ export default function Home() {
 
         outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-        // Async: enrich the activity block with real Ticketmaster events (fire-and-forget)
+        // Async: enrich activity block with Ticketmaster events (fire-and-forget)
         const anchorInterest = pickAnchorInterest(selectedCardIndex, stateRef.current);
         fetch('/api/generate-plan', {
           method: 'POST',
@@ -644,6 +644,38 @@ export default function Home() {
             activityBlock.after(wrapper.firstElementChild!);
           })
           .catch(() => { /* non-critical */ });
+
+        // Async: enrich meal/bar block with live Places data (fire-and-forget)
+        const card = outroCityPlanRef.current?.querySelector('.idea-card');
+        const detailBlocks = card?.querySelectorAll('.city-detail-block');
+        const mealBlock = detailBlocks?.[1] as HTMLElement | undefined;
+        if (mealBlock) {
+          const venueText = mealBlock.querySelector('.city-detail-venue')?.textContent ?? '';
+          const venueName = venueText.split(' (')[0].split(' — ')[0].trim();
+          if (venueName) {
+            fetch('/api/venue-details', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ venueName, city }),
+            })
+              .then((r) => r.json())
+              .then(({ venue }: { venue: { address?: string; rating?: number; googleMapsUri?: string } | null }) => {
+                if (!venue || !outroCityPlanRef.current) return;
+                const venueEl = mealBlock.querySelector('.city-detail-venue');
+                if (!venueEl) return;
+                const meta = [
+                  venue.rating != null ? `★ ${venue.rating.toFixed(1)}` : '',
+                  venue.address ?? '',
+                ].filter(Boolean).join(' · ');
+                if (!meta) return;
+                const p = document.createElement('p');
+                p.className = 'venue-live-meta';
+                p.textContent = meta;
+                venueEl.after(p);
+              })
+              .catch(() => { /* non-critical */ });
+          }
+        }
 
         return;
       }

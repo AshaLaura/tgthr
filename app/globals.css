@@ -825,6 +825,14 @@ h2 {
   font-weight: 500;
 }
 
+/* Live rating + address from Google Places */
+.venue-live-meta {
+  margin: 0.3rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
 /* ── Venue links (city plan cards) ───────────────────────────────────────── */
 
 .venue-links {

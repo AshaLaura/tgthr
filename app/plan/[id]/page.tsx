@@ -136,6 +136,37 @@ export default function PlanPage({ params }: { params: Promise<{ id: string }> }
         activityBlock.after(wrapper.firstElementChild!)
       })
       .catch(() => { /* non-critical */ })
+
+    // Async: enrich meal/bar block with live Places data (fire-and-forget)
+    const detailBlocks = planBodyRef.current.querySelectorAll('.city-detail-block')
+    const mealBlock = detailBlocks?.[1] as HTMLElement | undefined
+    if (mealBlock) {
+      const venueText = mealBlock.querySelector('.city-detail-venue')?.textContent ?? ''
+      const venueName = venueText.split(' (')[0].split(' — ')[0].trim()
+      if (venueName) {
+        fetch('/api/venue-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ venueName, city: activeCity }),
+        })
+          .then((r) => r.json())
+          .then(({ venue }: { venue: { address?: string; rating?: number } | null }) => {
+            if (!venue || !planBodyRef.current) return
+            const venueEl = mealBlock.querySelector('.city-detail-venue')
+            if (!venueEl) return
+            const meta = [
+              venue.rating != null ? `★ ${venue.rating.toFixed(1)}` : '',
+              venue.address ?? '',
+            ].filter(Boolean).join(' · ')
+            if (!meta) return
+            const p = document.createElement('p')
+            p.className = 'venue-live-meta'
+            p.textContent = meta
+            venueEl.after(p)
+          })
+          .catch(() => { /* non-critical */ })
+      }
+    }
   }, [plan, activeCity])
 
   if (loading) return <LoadingState message="Loading your plan…" />
