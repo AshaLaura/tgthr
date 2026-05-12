@@ -122,7 +122,7 @@ export default function PlanPage({ params }: { params: Promise<{ id: string }> }
     fetch('/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ anchorInterest, city: activeCity, budgetTier: plan.questionnaire_data.you.budget }),
+      body: JSON.stringify({ anchorInterest, city: activeCity, budgetTier: '2' }),
     })
       .then((r) => r.json())
       .then(({ events }: { events: TmEvent[] }) => {

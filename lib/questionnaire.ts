@@ -5,35 +5,34 @@ export const MAX_INTERESTS = 3;
 export const MAX_VIBE = 3;
 
 export interface State {
-  you: {
+  profile: {
     name: string;
-    interests: string[];
-    drinks: string[];
-    budget: string;
     dietTags: string[];
+    drinks: string[];
   };
-  date: {
+  occasion: {
+    occasionType: string;
+    personName: string;
+    interests: string[];
+    personDietTags: string[];
+    personDrinks: string[];
     stage: string;
     vibe: string[];
-    overlap: string[];
-    dietTags: string[];
-    drinks: string[];
     goal: string;
   };
 }
 
 export const STEP_PHASES = [
-  "you",   // 0 name
-  "you",   // 1 interests
-  "you",   // 2 your diet
-  "you",   // 3 drinks
-  "you",   // 4 budget
-  "date",  // 5 stage
-  "date",  // 6 their vibe
-  "date",  // 7 overlap
-  "date",  // 8 their diet
-  "date",  // 9 their drinks
-  "date",  // 10 goal
+  "profile",   // 0: your name
+  "profile",   // 1: your diet
+  "profile",   // 2: your drinks
+  "occasion",  // 3: who is this for + person name
+  "occasion",  // 4: their interests
+  "occasion",  // 5: their diet
+  "occasion",  // 6: their drinks
+  "occasion",  // 7: stage
+  "occasion",  // 8: their vibe
+  "occasion",  // 9: goal
 ];
 
 export const interestMeta = [
@@ -715,23 +714,23 @@ export function escapeAttr(s: string): string {
 }
 
 export function pickAnchorInterest(index: number, state: State): string {
-  const anchors = unique([...state.date.overlap, ...state.you.interests, "food"]);
+  const anchors = unique([...state.occasion.interests, "food"]);
   return anchors[Math.min(index, anchors.length - 1)] || "food";
 }
 
 export function pickDrinkPreference(state: State): string {
-  return state.you.drinks[0] || "surprise";
+  return state.occasion.personDrinks[0] || state.profile.drinks[0] || "surprise";
 }
 
 export function describeFoodFit(state: State): string {
-  const foodTags = unique([...state.you.dietTags, ...state.date.dietTags]);
+  const foodTags = unique([...state.profile.dietTags, ...state.occasion.personDietTags]);
   if (!foodTags.length) {
     return "a menu that is easy to navigate for both of you";
   }
   return `${formatList(mapDietTags(foodTags))} friendly options`;
 }
 
-export function mealBlueprint(styleKey: string, state: State): string {
+export function mealBlueprint(styleKey: string, state: State, budget: string = "2"): string {
   const baseByBudget: Record<string, Record<string, string>> = {
     "1": {
       easy: "Keep the meal casual but chosen: a cafe, neighborhood spot, or market-led dinner that still feels thoughtful.",
@@ -749,39 +748,26 @@ export function mealBlueprint(styleKey: string, state: State): string {
       stretch: "Go all in on a memorable dinner that feels transporting from the first plate onward.",
     },
   };
-  const tier = baseByBudget[state.you.budget] || baseByBudget["2"];
+  const tier = baseByBudget[budget] || baseByBudget["2"];
   return `${tier[styleKey]} Aim for ${describeFoodFit(state)}.`;
 }
 
 export interface IdeaCard {
   title: string;
+  city: string;
+  cityLabel: string;
+  budgetTier: string;
   activity: string;
-  bar?: string;
-  meal?: string;
+  activityVenue: string;
+  activityLinks: VenueLink[];
+  bar: string;
+  barVenue: string;
+  barLinks: VenueLink[];
+  meal: string;
+  mealVenue: string;
+  mealLinks: VenueLink[];
   why: string;
   ideaIndex?: number;
-}
-
-export function buildIdeaCard(
-  styleKey: string,
-  title: string,
-  index: number,
-  why: string,
-  state: State
-): IdeaCard {
-  const interestId = pickAnchorInterest(index, state);
-  const activity =
-    activityBlueprints[interestId]?.[styleKey] ||
-    activityBlueprints.food[styleKey];
-
-  if (index === 1) {
-    const drinkId = pickDrinkPreference(state);
-    const bar =
-      drinkBlueprints[drinkId]?.[styleKey] || drinkBlueprints.surprise[styleKey];
-    return { title, activity, bar, why };
-  }
-
-  return { title, activity, meal: mealBlueprint(styleKey, state), why };
 }
 
 export function pillGridInterests(selected: string[], name: string): string {
@@ -815,26 +801,29 @@ export function pillGridDrinks(selected: string[], name = "youDrinks"): string {
 }
 
 export function dietFieldsHtml(tags: string[], checkboxName: string): string {
-  const chips = dietOptionMeta
+  const pills = dietOptionMeta
     .map((opt) => {
       const c = tags.includes(opt.id) ? "checked" : "";
-      return `<label class="chip"><input type="checkbox" name="${checkboxName}" value="${opt.id}" ${c} />${opt.label}</label>`;
+      return `<label class="pill"><input type="checkbox" name="${checkboxName}" value="${opt.id}" ${c} /><span class="pill-label">${opt.label}</span></label>`;
     })
     .join("");
   return `
-      <div class="chip-grid diet-options" role="group" aria-label="Dietary preferences">
-        ${chips}
+      <div class="pill-grid" role="group" aria-label="Dietary preferences">
+        ${pills}
       </div>`;
 }
 
 export function renderStepContent(idx: number, state: State): string {
+  const personRef = state.occasion.personName || 'them';
+  const personThey = state.occasion.personName || 'They';
+
   switch (idx) {
     case 0: {
-      const savedName = state.you.name.trim();
+      const savedName = state.profile.name.trim();
       if (savedName) {
         return `
-          <p class="flow-q">Hi ${escapeHtml(savedName)}, let's get this date planned.</p>
-          <p class="flow-sub">Want us to use a different name? Update it below, or just keep going.</p>
+          <p class="flow-q">Hi ${escapeHtml(savedName)}, let's plan your night.</p>
+          <p class="flow-sub">Update your name if you'd like, or just keep going.</p>
           <div class="field-row">
             <label class="sr-only" for="fld-name">Name</label>
             <input type="text" id="fld-name" maxlength="80" placeholder="First name or nickname" value="${escapeAttr(savedName)}" autocomplete="given-name" />
@@ -849,141 +838,114 @@ export function renderStepContent(idx: number, state: State): string {
           </div>`;
     }
 
-    case 1: {
-      const hasSavedInterests = state.you.interests.length > 0;
+    case 1:
       return `
-          <p class="flow-q">Tap up to <em>three</em> vibes that feel like you.</p>
-          <p class="flow-sub">${hasSavedInterests
-            ? "We remembered your usual picks — update anything for tonight."
-            : "We'll use these to thread your night together."
-          }</p>
-          ${pillGridInterests(state.you.interests, "youInterests")}`;
-    }
+          <p class="flow-q">Food allergies &amp; how you eat?</p>
+          <p class="flow-sub">Tap anything that applies — we'll keep the meal safe for both of you.</p>
+          ${dietFieldsHtml(state.profile.dietTags, "dietPref")}`;
 
     case 2:
       return `
-          <p class="flow-q">Food allergies &amp; how <em>you</em> eat?</p>
-          <p class="flow-sub">Tap anything that applies so we can keep you safe when we pick the meal.</p>
-          ${dietFieldsHtml(state.you.dietTags, "dietPref")}`;
+          <p class="flow-q">What are you into drinking?</p>
+          <p class="flow-sub">${state.profile.drinks.length
+            ? "Your saved picks are pre-filled — update anything."
+            : "Pick everything that sounds good. We'll shape one stop around it."
+          }</p>
+          ${pillGridDrinks(state.profile.drinks, "youDrinks")}`;
 
     case 3:
       return `
-          <p class="flow-q">What are you into drinking?</p>
-          <p class="flow-sub">Pick everything that sounds good — we'll shape one stop around it.</p>
-          ${pillGridDrinks(state.you.drinks)}`;
+          <p class="flow-q">Who's the plan for?</p>
+          <p class="flow-sub">Pick what fits, then tell us their name if you'd like.</p>
+          <div class="pill-row" role="radiogroup">
+            ${([
+              ['date', 'A date'],
+              ['partner', 'My partner'],
+              ['anniversary', 'Anniversary'],
+              ['friends', 'Friend date'],
+            ] as [string, string][]).map(([val, lab]) =>
+              `<label class="pill"><input type="radio" name="occasionType" value="${val}" ${
+                state.occasion.occasionType === val ? 'checked' : ''
+              } /><span class="pill-label">${lab}</span></label>`
+            ).join('')}
+          </div>
+          <div class="field-row" style="margin-top:1.5rem">
+            <label class="sr-only" for="fld-person-name">Their name</label>
+            <input type="text" id="fld-person-name" maxlength="80" placeholder="Their name (optional)" value="${escapeAttr(state.occasion.personName)}" />
+          </div>`;
 
     case 4:
       return `
-          <p class="flow-q">What's the budget tonight?</p>
-          <p class="flow-sub">No judgment — just calibration.</p>
-          <div class="budget-grid" role="radiogroup" aria-label="Budget">
-            ${(["1", "2", "3"] as const)
-              .map((tier) => {
-                const c = state.you.budget === tier ? "checked" : "";
-                const sym = "$".repeat(parseInt(tier, 10));
-                const blurbs: Record<string, string> = {
-                  "1": "Clever & cozy",
-                  "2": "Balanced splurge",
-                  "3": "Pull out the stops",
-                };
-                return `<label class="budget-tile">
-                  <input type="radio" name="youBudget" value="${tier}" ${c} />
-                  <span class="budget-symbol" aria-hidden="true">${sym}</span>
-                  <span class="budget-blurb">${blurbs[tier]}</span>
-                </label>`;
-              })
-              .join("")}
-          </div>`;
+          <p class="flow-q">What does ${escapeHtml(personRef)} enjoy?</p>
+          <p class="flow-sub">Up to three — the shared thread we'll build the night around.</p>
+          ${pillGridInterests(state.occasion.interests, "theirInterests")}`;
 
     case 5:
       return `
-          <p class="flow-q">Where are you two at?</p>
-          <p class="flow-sub">So we don't suggest a sky-dive on a first coffee.</p>
-          <div class="chip-row" role="radiogroup">
-            ${(
-              [
-                ["first", "First real date"],
-                ["early", "Early — still discovering"],
-                ["steady", "Steady — deepening"],
-                ["long", "Together a while"],
-              ] as [string, string][]
-            )
-              .map(
-                ([val, lab]) =>
-                  `<label class="chip"><input type="radio" name="stage" value="${val}" ${
-                    state.date.stage === val ? "checked" : ""
-                  } />${lab}</label>`
-              )
-              .join("")}
-          </div>`;
+          <p class="flow-q">Any food notes for ${escapeHtml(personRef)}?</p>
+          <p class="flow-sub">What you know helps us avoid landmines at the table. Not sure? Leave it blank.</p>
+          ${dietFieldsHtml(state.occasion.personDietTags, "personDietPref")}`;
 
     case 6:
       return `
-          <p class="flow-q">Their energy — pick up to three.</p>
-          <p class="flow-sub">Trust your gut. This steers tone, not stereotypes.</p>
-          <div class="chip-grid" role="group">
-            ${(
-              [
-                ["warm", "Warm & easy"],
-                ["curious", "Curious"],
-                ["witty", "Witty"],
-                ["quiet", "Quiet depth"],
-                ["bold", "Bold"],
-                ["grounded", "Grounded"],
-                ["playful", "Playful"],
-                ["spontaneous", "Spontaneous"],
-              ] as [string, string][]
-            )
-              .map(([val, lab]) => {
-                const c = state.date.vibe.includes(val) ? "checked" : "";
-                return `<label class="chip"><input type="checkbox" name="dateVibe" value="${val}" ${c} />${lab}</label>`;
-              })
-              .join("")}
-          </div>`;
+          <p class="flow-q">What does ${escapeHtml(personRef)} like to drink?</p>
+          <p class="flow-sub">We'll shape one drink stop around it.</p>
+          ${pillGridDrinks(state.occasion.personDrinks, "theirDrinks")}`;
 
     case 7:
       return `
-          <p class="flow-q">Where do your interests overlap?</p>
-          <p class="flow-sub">Up to three — the shared thread for your recipe.</p>
-          ${pillGridInterests(state.date.overlap, "dateOverlap")}`;
+          <p class="flow-q">Where are you two at?</p>
+          <p class="flow-sub">So we don't suggest a sky-dive on a first coffee.</p>
+          <div class="pill-row" role="radiogroup">
+            ${([
+              ['first', 'First real date'],
+              ['early', 'Early — still discovering'],
+              ['steady', 'Steady — deepening'],
+              ['long', 'Together a while'],
+            ] as [string, string][]).map(([val, lab]) =>
+              `<label class="pill"><input type="radio" name="stage" value="${val}" ${
+                state.occasion.stage === val ? 'checked' : ''
+              } /><span class="pill-label">${lab}</span></label>`
+            ).join('')}
+          </div>`;
 
     case 8:
       return `
-          <p class="flow-q">Food allergies &amp; how <em>they</em> eat?</p>
-          <p class="flow-sub">What you know helps us avoid landmines at the table. If you don't know, now's the time to ask.</p>
-          ${dietFieldsHtml(state.date.dietTags, "dateDietPref")}`;
+          <p class="flow-q">${escapeHtml(personThey)}'s energy — pick up to three.</p>
+          <p class="flow-sub">Trust your gut. This steers tone, not stereotypes.</p>
+          <div class="pill-grid" role="group">
+            ${([
+              ['warm', 'Warm & easy'],
+              ['curious', 'Curious'],
+              ['witty', 'Witty'],
+              ['quiet', 'Quiet depth'],
+              ['bold', 'Bold'],
+              ['grounded', 'Grounded'],
+              ['playful', 'Playful'],
+              ['spontaneous', 'Spontaneous'],
+            ] as [string, string][]).map(([val, lab]) =>
+              `<label class="pill"><input type="checkbox" name="personVibe" value="${val}" ${
+                state.occasion.vibe.includes(val) ? 'checked' : ''
+              } /><span class="pill-label">${lab}</span></label>`
+            ).join('')}
+          </div>`;
 
     case 9:
       return `
-          <p class="flow-q">What does your date like to drink?</p>
-          <p class="flow-sub">Not sure? Now's a great time to ask — we'll use it to shape their stop of the night.</p>
-          ${pillGridDrinks(state.date.drinks, "dateDrinks")}`;
-
-    case 10:
-      return `
-          <p class="flow-q">By the end of the night, you'd love for them to feel…</p>
+          <p class="flow-q">By the end of the night, you'd love for ${escapeHtml(personRef)} to feel…</p>
           <p class="flow-sub">One tap. We'll shape pace and payoff around it.</p>
-          <div class="goal-grid" role="radiogroup">
-            ${(
-              [
-                ["seen", "Seen & at ease", "Soft landing, real conversation"],
-                ["spark", "Playful spark", "Laughter, flirt, little risks"],
-                ["closer", "Closer & more honest", "A night that opens something"],
-                ["adventure", "Lit up by something new", "Shared firsts"],
-                ["rest", "Restored & cared for", "Gentle, nourishing, calm"],
-              ] as [string, string, string][]
-            )
-              .map(
-                ([id, title, sub]) =>
-                  `<label class="goal-card">
-                    <input type="radio" name="dateGoal" value="${id}" ${
-                      state.date.goal === id ? "checked" : ""
-                    } />
-                    <strong>${title}</strong>
-                    <span>${sub}</span>
-                  </label>`
-              )
-              .join("")}
+          <div class="pill-grid pill-grid--goal" role="radiogroup">
+            ${([
+              ['seen',      'Seen & at ease',          'Soft landing, real conversation'],
+              ['spark',     'Playful spark',            'Laughter, flirt, little risks'],
+              ['closer',    'Closer & more honest',     'A night that opens something'],
+              ['adventure', 'Lit up by something new',  'Shared firsts'],
+              ['rest',      'Restored & cared for',     'Gentle, nourishing, calm'],
+            ] as [string, string, string][]).map(([id, title, sub]) =>
+              `<label class="pill pill--goal"><input type="radio" name="dateGoal" value="${id}" ${
+                state.occasion.goal === id ? 'checked' : ''
+              } /><span class="pill-label"><strong>${title}</strong><span class="pill-sub">${sub}</span></span></label>`
+            ).join('')}
           </div>`;
 
     default:
@@ -991,47 +953,135 @@ export function renderStepContent(idx: number, state: State): string {
   }
 }
 
-const bookmarkSvg = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>`;
-
 export function renderIdeaCardsHtml(cards: IdeaCard[]): string {
-  return cards
-    .map(
-      (card, index) => `
-          <article class="idea-card" data-card-index="${index}">
-            <div class="idea-card-header">
-              <p class="idea-kicker">Idea ${index + 1}</p>
-              <button class="idea-bookmark" aria-label="Save idea ${index + 1}" data-card-index="${index}" type="button">${bookmarkSvg}</button>
-            </div>
-            <h3>${escapeHtml(card.title)}</h3>
-            <p class="idea-why">${escapeHtml(card.why ?? '')}</p>
-            <div class="idea-details">
-              <div class="idea-detail-row">
-                <span class="idea-detail-label">Activity</span>
-                <span class="idea-detail-value">${escapeHtml(card.activity)}</span>
-              </div>
-              <div class="idea-detail-row">
-                <span class="idea-detail-label">${card.bar ? 'Bar stop' : 'Dinner'}</span>
-                <span class="idea-detail-value">${escapeHtml(card.bar || card.meal || '')}</span>
-              </div>
-            </div>
-            <button class="idea-cta" data-card-index="${index}" type="button">Let's do this ›</button>
-          </article>`
-    )
-    .join("");
+  return cards.map((card, index) => {
+    const isHidden = card.cityLabel === '?';
+    const cityBadge = isHidden
+      ? `<span class="city-badge city-badge--surprise">✦ Surprise</span>`
+      : `<span class="city-badge">${escapeHtml(card.cityLabel)}</span>`;
+    const budgetBadge = `<span class="budget-badge">${'$'.repeat(parseInt(card.budgetTier, 10))}</span>`;
+
+    return `
+      <article class="idea-card" data-card-index="${index}" data-city="${escapeAttr(card.city)}">
+        <div class="idea-card-header">
+          ${cityBadge}
+          ${budgetBadge}
+        </div>
+        <p class="idea-why">${escapeHtml(card.why)}</p>
+
+        <div class="city-detail-block">
+          <p class="city-detail-label">Activity</p>
+          <p class="city-detail-blueprint">${escapeHtml(card.activity)}</p>
+          <p class="city-detail-venue">${escapeHtml(card.activityVenue)}</p>
+          ${renderVenueLinks(card.activityLinks)}
+        </div>
+
+        <div class="city-detail-block">
+          <p class="city-detail-label">Drinks</p>
+          <p class="city-detail-blueprint">${escapeHtml(card.bar)}</p>
+          <p class="city-detail-venue">${escapeHtml(card.barVenue)}</p>
+          ${renderVenueLinks(card.barLinks)}
+        </div>
+
+        <div class="city-detail-block">
+          <p class="city-detail-label">Dinner</p>
+          <p class="city-detail-blueprint">${escapeHtml(card.meal)}</p>
+          <p class="city-detail-venue">${escapeHtml(card.mealVenue)}</p>
+          ${renderVenueLinks(card.mealLinks)}
+        </div>
+
+        <div class="city-plan-actions">
+          <button class="btn secondary city-plan-save" data-city="${escapeAttr(card.city)}" data-idea-index="${index}" type="button">Save this plan</button>
+        </div>
+      </article>`;
+  }).join('');
 }
+
+// ——— Three-card output ——————————————————————————————————————————————————————
 
 const styleKeys = ["easy", "spark", "stretch"];
 const ideaTitles = ["The easy opener", "The shared spark", "The make-it-a-night version"];
-const ideaWhys = [
-  "Best when you want the night to feel natural fast, with enough structure to remove awkwardness without overproducing it.",
-  "Best when you want a little more momentum and chemistry, while still staying grounded in what you actually share.",
-  "Best when you want the plan to feel more intentional and memorable, with room for the night to open up.",
+
+interface CardConfig {
+  cityKey: string;
+  cityLabel: string;
+  budget: string;
+  styleKey: string;
+  interestOffset: number;
+  why: string;
+}
+
+const CARD_CONFIGS: CardConfig[] = [
+  {
+    cityKey: 'oak',
+    cityLabel: 'Oakland',
+    budget: '2',
+    styleKey: 'easy',
+    interestOffset: 0,
+    why: 'Grounded and real — the kind of night that feels lived-in without being low-effort.',
+  },
+  {
+    cityKey: 'sf',
+    cityLabel: 'San Francisco',
+    budget: '2',
+    styleKey: 'spark',
+    interestOffset: 0,
+    why: 'A little more electric — more city energy, a sharper edge, the same shared thread.',
+  },
+  {
+    cityKey: 'sf',
+    cityLabel: '?',
+    budget: '3',
+    styleKey: 'stretch',
+    interestOffset: 1,
+    why: 'The elevated pick — fuller budget, a stretch of venues, and a night worth talking about after.',
+  },
 ];
 
+export function buildThreeCards(state: State): IdeaCard[] {
+  return CARD_CONFIGS.map((cfg, i) => {
+    const city = cityVenues[cfg.cityKey];
+    const interests = unique([...state.occasion.interests, 'food']);
+    const interestId = interests[Math.min(cfg.interestOffset, interests.length - 1)] || 'food';
+    const drinkId = pickDrinkPreference(state);
+    const { styleKey } = cfg;
+
+    const activityVenue = city.activity[interestId]?.[styleKey] || city.activity.food[styleKey];
+    const activityLinks = getVenueLinks(cfg.cityKey, 'activity', interestId, styleKey);
+
+    const barVenue = city.bar[drinkId] || city.bar.surprise;
+    const barLinks = getVenueLinks(cfg.cityKey, 'bar', drinkId);
+
+    const mealStyleKey = styleKey === 'easy' ? 'easy' : 'stretch';
+    const mealVenue = city.meal[cfg.budget]?.[mealStyleKey] || city.meal['2'][mealStyleKey];
+    const mealLinks = getVenueLinks(cfg.cityKey, 'meal', cfg.budget, mealStyleKey);
+
+    const activity = activityBlueprints[interestId]?.[styleKey] || activityBlueprints.food[styleKey];
+    const bar = drinkBlueprints[drinkId]?.[styleKey] || drinkBlueprints.surprise[styleKey];
+    const meal = mealBlueprint(styleKey, state, cfg.budget);
+
+    return {
+      title: ideaTitles[i] ?? cfg.cityLabel,
+      city: cfg.cityKey,
+      cityLabel: cfg.cityLabel,
+      budgetTier: cfg.budget,
+      activity,
+      activityVenue,
+      activityLinks,
+      bar,
+      barVenue,
+      barLinks,
+      meal,
+      mealVenue,
+      mealLinks,
+      why: cfg.why,
+      ideaIndex: i,
+    };
+  });
+}
+
 export function buildAllIdeaCards(state: State): IdeaCard[] {
-  return styleKeys.map((key, i) =>
-    buildIdeaCard(key, ideaTitles[i], i, ideaWhys[i], state)
-  );
+  return buildThreeCards(state);
 }
 
 interface CityCard {
@@ -1046,7 +1096,7 @@ interface CityCard {
 
 function buildCityCard(cityKey: string, state: State, index: number): CityCard {
   const city = cityVenues[cityKey];
-  const budget = state.you.budget || "2";
+  const budget = "2";
   const drinkId = pickDrinkPreference(state);
   const styleKey = styleKeys[index];
   const interestId = pickAnchorInterest(index, state);

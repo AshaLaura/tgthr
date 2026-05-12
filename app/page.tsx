@@ -10,67 +10,10 @@ import {
   STEP_PHASES,
   MAX_INTERESTS,
   MAX_VIBE,
-  budgetCopy,
-  stageLabels,
-  goalLabels,
-  mapInterests,
-  mapDrinks,
-  mapVibes,
-  mapDietTags,
-  formatList,
   renderStepContent,
   renderIdeaCardsHtml,
-  renderCityPlanHtml,
-  buildIdeaCard,
-  pickAnchorInterest,
-  escapeHtml,
-  escapeAttr,
-  buildAllIdeaCards,
+  buildThreeCards,
 } from '@/lib/questionnaire';
-import type { TmEvent } from '@/lib/ticketmaster';
-
-const EVENTS_CONTEXT: Partial<Record<string, string>> = {
-  music: 'You listed music as an interest — these live shows are happening nearby within the next two weeks.',
-  art: 'Since comedy is part of your vibe, here are some shows near you in the next two weeks.',
-}
-
-function formatPriceRange(min?: number, max?: number): string {
-  if (min == null) return ''
-  const lo = `$${Math.round(min)}`
-  if (max == null || Math.round(max) === Math.round(min)) return lo
-  return `${lo} – $${Math.round(max)}`
-}
-
-function renderEventsHtml(events: TmEvent[], anchorInterest: string): string {
-  const context = EVENTS_CONTEXT[anchorInterest] ?? ''
-  const items = events.map((ev) => {
-    const date = ev.date
-      ? new Date(ev.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-      : '';
-    const meta = [date, ev.venue].filter(Boolean).join(' · ');
-    const priceStr = formatPriceRange(ev.priceMin, ev.priceMax)
-    const price = priceStr ? `<p class="tm-event-price">${escapeHtml(priceStr)} per ticket</p>` : '';
-    const img = ev.imageUrl
-      ? `<img src="${escapeAttr(ev.imageUrl)}" class="tm-event-img" alt="" loading="lazy" />`
-      : '';
-    return `
-      <div class="tm-event">
-        ${img}
-        <div class="tm-event-body">
-          <p class="tm-event-name">${escapeHtml(ev.name)}</p>
-          ${meta ? `<p class="tm-event-meta">${escapeHtml(meta)}</p>` : ''}
-          ${price}
-          <a href="${escapeAttr(ev.url)}" class="tm-event-link" target="_blank" rel="noopener noreferrer">Get Tickets →</a>
-        </div>
-      </div>`;
-  });
-  return `
-    <div class="tm-events">
-      <p class="tm-events-heading">Upcoming Events</p>
-      ${context ? `<p class="tm-events-context">${escapeHtml(context)}</p>` : ''}
-      <div class="tm-event-list">${items.join('')}</div>
-    </div>`;
-}
 
 export default function Home() {
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -90,15 +33,13 @@ export default function Home() {
   const btnFlowExitRef = useRef<HTMLButtonElement>(null);
   const btnFlowBackRef = useRef<HTMLButtonElement>(null);
   const btnFlowNextRef = useRef<HTMLButtonElement>(null);
-  const outroSummaryRef = useRef<HTMLParagraphElement>(null);
   const outroIdeasRef = useRef<HTMLDivElement>(null);
-  const outroCityPlanRef = useRef<HTMLDivElement>(null);
   const btnRestartRef = useRef<HTMLButtonElement>(null);
 
   // — questionnaire state (imperative, not React state) —
   const stateRef = useRef<State>({
-    you: { name: '', interests: [], drinks: [], budget: '', dietTags: [] },
-    date: { stage: '', vibe: [], overlap: [], dietTags: [], drinks: [], goal: '' },
+    profile:  { name: '', dietTags: [], drinks: [] },
+    occasion: { occasionType: '', personName: '', interests: [], personDietTags: [], personDrinks: [], stage: '', vibe: [], goal: '' },
   });
   const stepIndexRef = useRef(0);
   const cardsRef = useRef<IdeaCard[]>([]);
@@ -162,7 +103,7 @@ export default function Home() {
       animateMount();
 
       const phase = STEP_PHASES[stepIndexRef.current];
-      phaseTagRef.current!.textContent = phase === 'you' ? 'You' : 'Your date';
+      phaseTagRef.current!.textContent = phase === 'profile' ? 'Your Profile' : 'Your Occasion';
 
       const effectiveStep  = visibleIndex(stepIndexRef.current);
       const effectiveTotal = TOTAL_STEPS - skippedSteps.size;
@@ -180,7 +121,7 @@ export default function Home() {
       progressDotsRef.current!.setAttribute('aria-valuenow', String(effectiveStep + 1));
 
       const isLast = nextVisibleStep(stepIndexRef.current) >= TOTAL_STEPS;
-      btnFlowNextRef.current!.textContent = isLast ? 'See your outline' : 'Next';
+      btnFlowNextRef.current!.textContent = isLast ? 'Build my night →' : 'Next';
 
       wireStepHandlers();
     }
@@ -197,50 +138,40 @@ export default function Home() {
       const s = stateRef.current;
       switch (idx) {
         case 0:
-          s.you.name = (
-            (root.querySelector('#fld-name') as HTMLInputElement)?.value || ''
-          ).trim();
+          s.profile.name = ((root.querySelector('#fld-name') as HTMLInputElement)?.value || '').trim();
           break;
         case 1:
-          s.you.interests = readChecked(root, 'youInterests');
+          s.profile.dietTags = readChecked(root, 'dietPref');
           break;
         case 2:
-          s.you.dietTags = readChecked(root, 'dietPref');
+          s.profile.drinks = readChecked(root, 'youDrinks');
           break;
-        case 3:
-          s.you.drinks = readChecked(root, 'youDrinks');
-          break;
-        case 4: {
-          const b = root.querySelector<HTMLInputElement>(
-            'input[name="youBudget"]:checked'
-          );
-          s.you.budget = b ? b.value : '';
+        case 3: {
+          const ot = root.querySelector<HTMLInputElement>('input[name="occasionType"]:checked');
+          s.occasion.occasionType = ot ? ot.value : '';
+          s.occasion.personName = ((root.querySelector('#fld-person-name') as HTMLInputElement)?.value || '').trim();
           break;
         }
-        case 5: {
-          const st = root.querySelector<HTMLInputElement>(
-            'input[name="stage"]:checked'
-          );
-          s.date.stage = st ? st.value : '';
+        case 4:
+          s.occasion.interests = readChecked(root, 'theirInterests');
           break;
-        }
+        case 5:
+          s.occasion.personDietTags = readChecked(root, 'personDietPref');
+          break;
         case 6:
-          s.date.vibe = readChecked(root, 'dateVibe');
+          s.occasion.personDrinks = readChecked(root, 'theirDrinks');
           break;
-        case 7:
-          s.date.overlap = readChecked(root, 'dateOverlap');
+        case 7: {
+          const st = root.querySelector<HTMLInputElement>('input[name="stage"]:checked');
+          s.occasion.stage = st ? st.value : '';
           break;
+        }
         case 8:
-          s.date.dietTags = readChecked(root, 'dateDietPref');
+          s.occasion.vibe = readChecked(root, 'personVibe');
           break;
-        case 9:
-          s.date.drinks = readChecked(root, 'dateDrinks');
-          break;
-        case 10: {
-          const g = root.querySelector<HTMLInputElement>(
-            'input[name="dateGoal"]:checked'
-          );
-          s.date.goal = g ? g.value : '';
+        case 9: {
+          const g = root.querySelector<HTMLInputElement>('input[name="dateGoal"]:checked');
+          s.occasion.goal = g ? g.value : '';
           break;
         }
         default:
@@ -254,64 +185,55 @@ export default function Home() {
         case 0:
           return true;
         case 1:
-          if (s.you.interests.length === 0) {
-            flowHintRef.current!.textContent = 'Pick at least one — or we\'re guessing blind.';
-            return false;
-          }
-          if (s.you.interests.length > MAX_INTERESTS) {
-            flowHintRef.current!.textContent = `Choose up to ${MAX_INTERESTS} interests.`;
-            return false;
-          }
           return true;
         case 2:
+          if (s.profile.drinks.length === 0) {
+            flowHintRef.current!.textContent = "Pick at least one — we'll shape a stop around it.";
+            return false;
+          }
           return true;
         case 3:
-          if (s.you.drinks.length === 0) {
-            flowHintRef.current!.textContent =
-              "Pick at least one — we'll shape a stop around it.";
+          if (!s.occasion.occasionType) {
+            flowHintRef.current!.textContent = 'Pick who the night is for.';
             return false;
           }
           return true;
         case 4:
-          if (!s.you.budget) {
-            flowHintRef.current!.textContent = 'Tap a budget tier to keep us in range.';
+          if (s.occasion.interests.length === 0) {
+            flowHintRef.current!.textContent = "Pick at least one — or we're guessing blind.";
+            return false;
+          }
+          if (s.occasion.interests.length > MAX_INTERESTS) {
+            flowHintRef.current!.textContent = `Choose up to ${MAX_INTERESTS} interests.`;
             return false;
           }
           return true;
         case 5:
-          if (!s.date.stage) {
-            flowHintRef.current!.textContent =
-              "Tell us where you're at — we'll tune the stakes.";
-            return false;
-          }
           return true;
         case 6:
-          if (s.date.vibe.length === 0) {
-            flowHintRef.current!.textContent = 'Pick at least one vibe.';
-            return false;
-          }
-          if (s.date.vibe.length > MAX_VIBE) {
-            flowHintRef.current!.textContent = `Up to ${MAX_VIBE} vibes, please.`;
+          if (s.occasion.personDrinks.length === 0) {
+            flowHintRef.current!.textContent = "Pick at least one — we'll shape a stop around it.";
             return false;
           }
           return true;
         case 7:
-          if (s.date.overlap.length === 0) {
-            flowHintRef.current!.textContent =
-              'Pick at least one overlap — that\'s your shared hook.';
-            return false;
-          }
-          if (s.date.overlap.length > MAX_INTERESTS) {
-            flowHintRef.current!.textContent = `Choose up to ${MAX_INTERESTS} overlaps.`;
+          if (!s.occasion.stage) {
+            flowHintRef.current!.textContent = "Tell us where you're at — we'll tune the stakes.";
             return false;
           }
           return true;
         case 8:
+          if (s.occasion.vibe.length === 0) {
+            flowHintRef.current!.textContent = 'Pick at least one vibe.';
+            return false;
+          }
+          if (s.occasion.vibe.length > MAX_VIBE) {
+            flowHintRef.current!.textContent = `Up to ${MAX_VIBE} vibes, please.`;
+            return false;
+          }
           return true;
         case 9:
-          return true;
-        case 10:
-          if (!s.date.goal) {
+          if (!s.occasion.goal) {
             flowHintRef.current!.textContent = 'Choose how you want the night to land.';
             return false;
           }
@@ -351,14 +273,11 @@ export default function Home() {
       stepAbort = new AbortController();
       const sig = stepAbort.signal;
 
-      if (stepIndexRef.current === 1) {
-        enforceCapsListeners('youInterests', MAX_INTERESTS, sig);
+      if (stepIndexRef.current === 4) {
+        enforceCapsListeners('theirInterests', MAX_INTERESTS, sig);
       }
-      if (stepIndexRef.current === 6) {
-        enforceCapsListeners('dateVibe', MAX_VIBE, sig);
-      }
-      if (stepIndexRef.current === 7) {
-        enforceCapsListeners('dateOverlap', MAX_INTERESTS, sig);
+      if (stepIndexRef.current === 8) {
+        enforceCapsListeners('personVibe', MAX_VIBE, sig);
       }
 
       flowMountRef.current!.addEventListener(
@@ -403,59 +322,9 @@ export default function Home() {
 
     async function finish() {
       const s = stateRef.current;
-      const name = s.you.name ? s.you.name : 'You';
-      const bitsYou = mapInterests(s.you.interests);
-      const tier = budgetCopy[s.you.budget] || 'something thoughtful';
-      const bitsShared = mapInterests(s.date.overlap);
-      const dateVibes = mapVibes(s.date.vibe);
-      const stageLabel = stageLabels[s.date.stage] || 'a date with real potential';
-      const goalLabel = goalLabels[s.date.goal] || 'good in your bodies and glad you came';
-
-      const tags = mapDietTags(s.you.dietTags);
-      const eatingClause = tags.length
-        ? ` For you, food-wise: ${formatList(tags)}.`
-        : '';
-
-      const dateTags = mapDietTags(s.date.dietTags);
-      const dateFoodClause = dateTags.length
-        ? ` For your date (best guess): ${formatList(dateTags)}.`
-        : '';
-
-      outroSummaryRef.current!.textContent = `${name}, here's the read: this is ${stageLabel} with a ${tier} budget, your energy leans ${formatList(
-        bitsYou
-      )}, and your date is coming across ${formatList(
-        dateVibes
-      )}. You both light up around ${formatList(
-        bitsShared
-      )}, and the best version of the night ends with them feeling ${goalLabel}.${eatingClause}${dateFoodClause}`;
-
-      const builtCards = [
-        buildIdeaCard(
-          'easy',
-          'The easy opener',
-          0,
-          'Best when you want the night to feel natural fast, with enough structure to remove awkwardness without overproducing it.',
-          s
-        ),
-        buildIdeaCard(
-          'spark',
-          'The shared spark',
-          1,
-          'Best when you want a little more momentum and chemistry, while still staying grounded in what you actually share.',
-          s
-        ),
-        buildIdeaCard(
-          'stretch',
-          'The make-it-a-night version',
-          2,
-          'Best when you want the plan to feel more intentional and memorable, with room for the night to open up.',
-          s
-        ),
-      ];
-      cardsRef.current = builtCards;
-      outroIdeasRef.current!.innerHTML = renderIdeaCardsHtml(builtCards);
-
-      outroCityPlanRef.current!.innerHTML = '';
+      const cards = buildThreeCards(s);
+      cardsRef.current = cards;
+      outroIdeasRef.current!.innerHTML = renderIdeaCardsHtml(cards);
       show(outroRef.current!);
 
       // Check auth state — show save prompt if not signed in, or onboarding if planning_style not set
@@ -467,18 +336,15 @@ export default function Home() {
           setAuthModalOpen(true);
         });
       } else {
-        // User is signed in — save display_name from step 1 and check onboarding
         try {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
-            // Save name + preferences (always sync so profile stays current)
-            const enteredName = s.you.name.trim();
+            const enteredName = s.profile.name.trim();
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const prefUpdates: Record<string, any> = {
-              interests: s.you.interests,
-              drinks: s.you.drinks,
-              diet_tags: s.you.dietTags,
+              drinks:    s.profile.drinks,
+              diet_tags: s.profile.dietTags,
             };
             if (enteredName && enteredName !== profile.display_name) {
               prefUpdates.display_name = enteredName;
@@ -500,8 +366,8 @@ export default function Home() {
 
     function resetStateOnly() {
       stateRef.current = {
-        you: { name: '', interests: [], drinks: [], budget: '', dietTags: [] },
-        date: { stage: '', vibe: [], overlap: [], dietTags: [], drinks: [], goal: '' },
+        profile:  { name: '', dietTags: [], drinks: [] },
+        occasion: { occasionType: '', personName: '', interests: [], personDietTags: [], personDrinks: [], stage: '', vibe: [], goal: '' },
       };
     }
 
@@ -510,16 +376,7 @@ export default function Home() {
       stepIndexRef.current = 0;
       resetStateOnly();
       outroIdeasRef.current!.style.display = '';
-      outroCityPlanRef.current!.innerHTML = '';
       show(landingRef.current!);
-    }
-
-    function renderCityPlan(cityKey: string) {
-      outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(
-        cityKey,
-        stateRef.current
-      );
-      outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
     // — wire up events —
@@ -529,17 +386,16 @@ export default function Home() {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        // Logged in — skip name (0), diet (2), drinks (3); pre-fill from profile
-        skippedSteps = new Set([0, 2, 3]);
+        // Logged in — skip profile steps (0, 1, 2); pre-fill from saved profile
+        skippedSteps = new Set([0, 1, 2]);
         stepIndexRef.current = firstVisibleStep();
         try {
           const res = await fetch('/api/profile');
           if (res.ok) {
             const profile = await res.json();
-            if (profile.display_name) stateRef.current.you.name = profile.display_name;
-            if (profile.interests?.length) stateRef.current.you.interests = profile.interests;
-            if (profile.diet_tags?.length) stateRef.current.you.dietTags = profile.diet_tags;
-            if (profile.drinks?.length) stateRef.current.you.drinks = profile.drinks;
+            if (profile.display_name) stateRef.current.profile.name     = profile.display_name;
+            if (profile.diet_tags?.length) stateRef.current.profile.dietTags = profile.diet_tags;
+            if (profile.drinks?.length)    stateRef.current.profile.drinks   = profile.drinks;
           }
         } catch {
           // non-critical
@@ -559,128 +415,10 @@ export default function Home() {
     btnFlowBackRef.current!.addEventListener('click', goBack);
     btnFlowNextRef.current!.addEventListener('click', goNext);
 
-    // Track which card the user chose
-    let selectedCardIndex = 0;
-
-    // Delegated handler for idea cards — bookmark, "Let's do this", city choice
+    // Delegated handler for idea cards — save button on each card
     outroRef.current!.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement;
 
-      // Bookmark click
-      const bookmarkBtn = target.closest('.idea-bookmark') as HTMLElement | null;
-      if (bookmarkBtn) {
-        const cardIndex = parseInt(bookmarkBtn.dataset.cardIndex ?? '0', 10);
-        const card = cardsRef.current[cardIndex];
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setAuthModalOpen(true);
-          return;
-        }
-        try {
-          await fetch('/api/plans', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              questionnaire_data: stateRef.current,
-              plan_output: [card],
-            }),
-          });
-          bookmarkBtn.classList.add('is-saved');
-        } catch {
-          // non-critical
-        }
-        return;
-      }
-
-      // "Let's do this" click — hide all cards, show city chooser
-      const ctaBtn = target.closest('.idea-cta') as HTMLElement | null;
-      if (ctaBtn) {
-        selectedCardIndex = parseInt(ctaBtn.dataset.cardIndex ?? '0', 10);
-        // Hide the ideas grid
-        outroIdeasRef.current!.style.display = 'none';
-        // Show city chooser
-        outroCityPlanRef.current!.innerHTML = `
-          <div class="city-chooser">
-            <p class="city-chooser-label">Where would you like to go out?</p>
-            <div class="city-chooser-btns">
-              <button class="btn secondary" data-city="oak" type="button">Oakland</button>
-              <button class="btn secondary" data-city="sf" type="button">San Francisco</button>
-            </div>
-          </div>`;
-        outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        return;
-      }
-
-      // City selection — show only the city plan for the chosen idea
-      const cityBtn = target.closest('[data-city]') as HTMLElement | null;
-      if (cityBtn && !cityBtn.classList.contains('city-switch-btn')) {
-        const city = (cityBtn as HTMLElement).dataset.city!;
-        outroCityPlanRef.current!.innerHTML = renderCityPlanHtml(city, stateRef.current, selectedCardIndex, cardsRef.current);
-
-        // Save button
-        const saveWrapper = document.createElement('div');
-        saveWrapper.className = 'city-plan-actions';
-        saveWrapper.innerHTML = `<button class="btn primary city-plan-save" data-city="${city}" data-idea-index="${selectedCardIndex}" type="button">Save this plan</button>`;
-        outroCityPlanRef.current!.appendChild(saveWrapper);
-
-        outroCityPlanRef.current!.scrollIntoView({ behavior: 'smooth', block: 'start' });
-
-        // Async: enrich activity block with Ticketmaster events (fire-and-forget)
-        const anchorInterest = pickAnchorInterest(selectedCardIndex, stateRef.current);
-        fetch('/api/generate-plan', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ anchorInterest, city, budgetTier: stateRef.current.you.budget }),
-        })
-          .then((r) => r.json())
-          .then(({ events }: { events: TmEvent[] }) => {
-            if (!events?.length) return;
-            const card = outroCityPlanRef.current?.querySelector('.idea-card');
-            if (!card) return;
-            const activityBlock = card.querySelector('.city-detail-block');
-            if (!activityBlock) return;
-            const wrapper = document.createElement('div');
-            wrapper.innerHTML = renderEventsHtml(events, anchorInterest);
-            activityBlock.after(wrapper.firstElementChild!);
-          })
-          .catch(() => { /* non-critical */ });
-
-        // Async: enrich meal/bar block with live Places data (fire-and-forget)
-        const card = outroCityPlanRef.current?.querySelector('.idea-card');
-        const detailBlocks = card?.querySelectorAll('.city-detail-block');
-        const mealBlock = detailBlocks?.[1] as HTMLElement | undefined;
-        if (mealBlock) {
-          const venueText = mealBlock.querySelector('.city-detail-venue')?.textContent ?? '';
-          const venueName = venueText.split(' (')[0].split(' — ')[0].trim();
-          if (venueName) {
-            fetch('/api/venue-details', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ venueName, city }),
-            })
-              .then((r) => r.json())
-              .then(({ venue }: { venue: { address?: string; rating?: number; googleMapsUri?: string } | null }) => {
-                if (!venue || !outroCityPlanRef.current) return;
-                const venueEl = mealBlock.querySelector('.city-detail-venue');
-                if (!venueEl) return;
-                const meta = [
-                  venue.rating != null ? `★ ${venue.rating.toFixed(1)}` : '',
-                  venue.address ?? '',
-                ].filter(Boolean).join(' · ');
-                if (!meta) return;
-                const p = document.createElement('p');
-                p.className = 'venue-live-meta';
-                p.textContent = meta;
-                venueEl.after(p);
-              })
-              .catch(() => { /* non-critical */ });
-          }
-        }
-
-        return;
-      }
-
-      // Save city plan
       const savePlanBtn = target.closest('.city-plan-save') as HTMLElement | null;
       if (savePlanBtn) {
         const { data: { user } } = await supabase.auth.getUser();
@@ -688,7 +426,7 @@ export default function Home() {
 
         const cityToSave = savePlanBtn.dataset.city!;
         const ideaIdx = parseInt(savePlanBtn.dataset.ideaIndex ?? '0', 10);
-        const card = { ...cardsRef.current[ideaIdx], ideaIndex: ideaIdx };
+        const card = cardsRef.current[ideaIdx];
 
         savePlanBtn.textContent = 'Saving…';
         savePlanBtn.setAttribute('disabled', 'true');
@@ -723,7 +461,7 @@ export default function Home() {
       if (panel === 'landing') return;
       sessionStorage.setItem('tgthr_restore', JSON.stringify({
         panel,
-        state: stateRef.current,
+        state:     stateRef.current,
         stepIndex: stepIndexRef.current,
       }));
     }
@@ -879,9 +617,8 @@ export default function Home() {
         aria-labelledby="outro-title"
         ref={outroRef}
       >
-        <p className="eyebrow">Recipe incoming</p>
-        <h2 id="outro-title">You did the hard part: showing up with intention.</h2>
-        <p className="lede" id="outro-summary" ref={outroSummaryRef}></p>
+        <p className="eyebrow">Here&apos;s your night</p>
+        <h2 id="outro-title">Three ways to make it happen.</h2>
         <div id="auth-save-prompt" style={{ display: 'none', marginBottom: '1rem' }}>
           <p style={{ color: 'var(--accent)', cursor: 'pointer', margin: 0 }} id="btn-auth-prompt">
             Sign in to save this plan →
@@ -890,19 +627,15 @@ export default function Home() {
         <div
           className="outro-ideas"
           id="outro-ideas"
-          aria-label="Three date ideas"
+          aria-label="Three date night plans"
           ref={outroIdeasRef}
-        ></div>
-        <div
-          id="outro-city-plan"
-          className="outro-city-plan"
-          ref={outroCityPlanRef}
         ></div>
         <button
           type="button"
           className="btn primary"
           id="btn-restart"
           ref={btnRestartRef}
+          style={{ marginTop: '1.5rem' }}
         >
           Start over
         </button>
