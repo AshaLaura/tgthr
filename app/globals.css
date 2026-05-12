@@ -378,24 +378,23 @@ h2 {
   min-height: 5rem;
 }
 
-/* Icon pills */
+/* ── Pills (base + variants) ─────────────────────────────────────────────── */
+
 .pill-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.55rem;
 }
 
-.pill-grid--drinks .pill.icon-pill {
-  min-width: calc(50% - 0.3rem);
+/* Horizontal row for radio pills (occasion type, stage) */
+.pill-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
 }
 
-@media (min-width: 520px) {
-  .pill-grid--drinks .pill.icon-pill {
-    min-width: calc(33.333% - 0.4rem);
-  }
-}
-
-.pill.icon-pill {
+/* Base pill — works for both icon pills and simple text pills */
+.pill {
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
@@ -409,23 +408,63 @@ h2 {
   transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
 }
 
-.pill.icon-pill:hover {
+.pill:hover {
   border-color: rgba(244, 240, 248, 0.28);
   transform: translateY(-1px);
 }
 
-.pill.icon-pill:has(input:checked) {
+.pill:has(input:checked) {
   border-color: rgba(232, 180, 160, 0.65);
   background: rgba(155, 127, 214, 0.14);
   box-shadow: 0 0 0 1px rgba(232, 180, 160, 0.15);
 }
 
-.pill.icon-pill input {
+.pill input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
   width: 0;
   height: 0;
+}
+
+.pill-label {
+  flex: 1;
+  text-align: left;
+}
+
+/* Goal pills — full-width card shape with title + subtitle */
+.pill--goal {
+  border-radius: var(--radius);
+  padding: 0.85rem 1rem;
+  width: 100%;
+}
+
+.pill--goal .pill-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pill--goal .pill-label strong {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.pill-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+/* Icon-pill extras (glyph container) */
+.pill-grid--drinks .pill.icon-pill {
+  min-width: calc(50% - 0.3rem);
+}
+
+@media (min-width: 520px) {
+  .pill-grid--drinks .pill.icon-pill {
+    min-width: calc(33.333% - 0.4rem);
+  }
 }
 
 .pill.icon-pill .pill-glyph {
@@ -444,164 +483,11 @@ h2 {
   height: 1.25rem;
 }
 
-.pill-label {
-  flex: 1;
-  text-align: left;
-}
-
-/* Simple chips (stage, vibe, goal) */
+/* Chip grid (kept for any legacy chip usage) */
 .chip-grid {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-}
-
-.chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.55rem 0.95rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  font-size: 0.93rem;
-  user-select: none;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.chip:has(input:checked) {
-  border-color: rgba(232, 180, 160, 0.55);
-  background: rgba(155, 127, 214, 0.12);
-}
-
-.chip input {
-  accent-color: var(--accent-2);
-}
-
-/* Goal cards */
-.goal-grid {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.goal-card {
-  display: block;
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.03);
-  cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
-}
-
-.goal-card:hover {
-  border-color: rgba(244, 240, 248, 0.25);
-}
-
-.goal-card:has(input:checked) {
-  border-color: rgba(232, 180, 160, 0.55);
-  background: rgba(155, 127, 214, 0.12);
-}
-
-.goal-card input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.goal-card strong {
-  display: block;
-  font-family: var(--font-display);
-  font-size: 1.02rem;
-  margin-bottom: 0.15rem;
-}
-
-.goal-card span {
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-.diet-options {
-  gap: 0.6rem;
-  margin-bottom: 0.25rem;
-}
-
-.diet-options .chip {
-  padding-inline: 1rem;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.diet-options .chip:has(input:checked) {
-  background: linear-gradient(
-    135deg,
-    rgba(155, 127, 214, 0.22),
-    rgba(232, 180, 160, 0.18)
-  );
-  box-shadow: 0 0 0 1px rgba(232, 180, 160, 0.16);
-}
-
-
-/* Budget tiles */
-.budget-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.65rem;
-}
-
-.budget-tile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  padding: 1.15rem 0.5rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.04);
-  cursor: pointer;
-  transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
-}
-
-.budget-tile:hover {
-  transform: translateY(-2px);
-  border-color: rgba(244, 240, 248, 0.22);
-}
-
-.budget-tile:has(input:checked) {
-  border-color: rgba(232, 180, 160, 0.7);
-  background: rgba(155, 127, 214, 0.18);
-  box-shadow: 0 0 0 1px rgba(232, 180, 160, 0.12);
-}
-
-.budget-tile input {
-  position: absolute;
-  opacity: 0;
-  pointer-events: none;
-  width: 0;
-  height: 0;
-}
-
-.budget-symbol {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.65rem;
-  letter-spacing: 0.08em;
-  color: var(--accent);
-}
-
-.budget-blurb {
-  font-size: 0.75rem;
-  color: var(--muted);
-  text-align: center;
-  line-height: 1.3;
 }
 
 .site-footer {
@@ -641,37 +527,40 @@ h2 {
 .idea-card-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 0.6rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
 }
 
+/* City label (Oakland / San Francisco / ✦ Surprise) */
+.city-badge {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.city-badge--surprise {
+  color: var(--accent-2);
+}
+
+/* Budget indicator ($ / $$) */
+.budget-badge {
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  opacity: 0.8;
+}
+
+/* Kept for plan detail page (renderCityPlanHtml) */
 .idea-kicker {
-  margin: 0;
+  margin: 0 0 0.4rem;
   color: var(--accent);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-size: 0.7rem;
-}
-
-.idea-bookmark {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.07);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  color: var(--muted);
-  flex-shrink: 0;
-  transition: background 0.15s, color 0.15s;
-}
-
-.idea-bookmark:hover,
-.idea-bookmark.is-saved {
-  background: rgba(232, 180, 160, 0.18);
-  color: var(--accent);
 }
 
 .idea-card h3 {
@@ -717,45 +606,6 @@ h2 {
   font-size: 0.9rem;
 }
 
-.idea-cta {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  width: 100%;
-  padding: 0.85rem 1rem;
-  border-radius: calc(var(--radius) - 2px);
-  background: rgba(120, 65, 35, 0.32);
-  border: 1px solid rgba(232, 180, 160, 0.22);
-  color: var(--accent);
-  font-family: var(--font-body);
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-
-.idea-cta:hover {
-  background: rgba(120, 65, 35, 0.52);
-}
-
-.city-chooser {
-  padding: 1.5rem 0 0.5rem;
-  text-align: center;
-}
-
-.city-chooser-label {
-  margin: 0 0 1rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.city-chooser-btns {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
 
 .outro-city-plan {
   margin-top: 1.5rem;
@@ -785,11 +635,6 @@ h2 {
   border: 0;
 }
 
-@media (max-width: 540px) {
-  .budget-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
 /* ── City plan detail blocks ─────────────────────────────────────────────── */
 
