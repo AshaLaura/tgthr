@@ -8,6 +8,7 @@ export interface State {
   profile: {
     name: string;
     dietTags: string[];
+    dietNotes: string;
     drinks: string[];
   };
   occasion: {
@@ -15,6 +16,7 @@ export interface State {
     personName: string;
     interests: string[];
     personDietTags: string[];
+    personDietNotes: string;
     personDrinks: string[];
     stage: string;
     vibe: string[];
@@ -201,21 +203,25 @@ export const activityBlueprints: Record<string, Record<string, string>> = {
 };
 
 export const dietOptionMeta = [
-  { id: "dairy_free", label: "Dairy-free" },
-  { id: "vegetarian", label: "Vegetarian" },
-  { id: "vegan", label: "Vegan" },
-  { id: "pescatarian", label: "Pescatarian" },
-  { id: "gluten_free", label: "Gluten-free" },
-  { id: "nut_allergy", label: "Nut allergy" },
+  { id: "dairy_free",       label: "Dairy-free" },
+  { id: "vegetarian",       label: "Vegetarian" },
+  { id: "vegan",            label: "Vegan" },
+  { id: "pescatarian",      label: "Pescatarian" },
+  { id: "gluten_free",      label: "Gluten-free" },
+  { id: "nut_allergy",      label: "Nut allergy" },
+  { id: "peanut_allergy",   label: "Peanut allergy" },
+  { id: "shellfish_allergy", label: "Shellfish allergy" },
 ];
 
 export const dietOptionLabels: Record<string, string> = {
-  dairy_free: "dairy-free",
-  vegetarian: "vegetarian",
-  vegan: "vegan",
-  pescatarian: "pescatarian",
-  gluten_free: "gluten-free",
-  nut_allergy: "nut allergy",
+  dairy_free:       "dairy-free",
+  vegetarian:       "vegetarian",
+  vegan:            "vegan",
+  pescatarian:      "pescatarian",
+  gluten_free:      "gluten-free",
+  nut_allergy:      "nut allergy",
+  peanut_allergy:   "peanut allergy",
+  shellfish_allergy: "shellfish allergy",
 };
 
 export const cityVenues: Record<string, {
@@ -842,7 +848,11 @@ export function renderStepContent(idx: number, state: State): string {
       return `
           <p class="flow-q">Food allergies &amp; how you eat?</p>
           <p class="flow-sub">Tap anything that applies — we'll keep the meal safe for both of you.</p>
-          ${dietFieldsHtml(state.profile.dietTags, "dietPref")}`;
+          ${dietFieldsHtml(state.profile.dietTags, "dietPref")}
+          <div class="field-row" style="margin-top:1rem">
+            <label class="sr-only" for="fld-diet-notes">Anything else?</label>
+            <input type="text" id="fld-diet-notes" name="dietNotes" maxlength="160" placeholder="Anything else? (e.g. no cilantro, severe tree nut allergy)" value="${escapeAttr(state.profile.dietNotes)}" />
+          </div>`;
 
     case 2:
       return `
@@ -884,7 +894,11 @@ export function renderStepContent(idx: number, state: State): string {
       return `
           <p class="flow-q">Any food notes for ${escapeHtml(personRef)}?</p>
           <p class="flow-sub">What you know helps us avoid landmines at the table. Not sure? Leave it blank.</p>
-          ${dietFieldsHtml(state.occasion.personDietTags, "personDietPref")}`;
+          ${dietFieldsHtml(state.occasion.personDietTags, "personDietPref")}
+          <div class="field-row" style="margin-top:1rem">
+            <label class="sr-only" for="fld-person-diet-notes">Anything else?</label>
+            <input type="text" id="fld-person-diet-notes" name="personDietNotes" maxlength="160" placeholder="Anything else? (e.g. no cilantro, severe tree nut allergy)" value="${escapeAttr(state.occasion.personDietNotes)}" />
+          </div>`;
 
     case 6:
       return `

@@ -38,8 +38,8 @@ export default function Home() {
 
   // — questionnaire state (imperative, not React state) —
   const stateRef = useRef<State>({
-    profile:  { name: '', dietTags: [], drinks: [] },
-    occasion: { occasionType: '', personName: '', interests: [], personDietTags: [], personDrinks: [], stage: '', vibe: [], goal: '' },
+    profile:  { name: '', dietTags: [], dietNotes: '', drinks: [] },
+    occasion: { occasionType: '', personName: '', interests: [], personDietTags: [], personDietNotes: '', personDrinks: [], stage: '', vibe: [], goal: '' },
   });
   const stepIndexRef = useRef(0);
   const cardsRef = useRef<IdeaCard[]>([]);
@@ -141,7 +141,8 @@ export default function Home() {
           s.profile.name = ((root.querySelector('#fld-name') as HTMLInputElement)?.value || '').trim();
           break;
         case 1:
-          s.profile.dietTags = readChecked(root, 'dietPref');
+          s.profile.dietTags  = readChecked(root, 'dietPref');
+          s.profile.dietNotes = ((root.querySelector('#fld-diet-notes') as HTMLInputElement)?.value || '').trim();
           break;
         case 2:
           s.profile.drinks = readChecked(root, 'youDrinks');
@@ -156,7 +157,8 @@ export default function Home() {
           s.occasion.interests = readChecked(root, 'theirInterests');
           break;
         case 5:
-          s.occasion.personDietTags = readChecked(root, 'personDietPref');
+          s.occasion.personDietTags  = readChecked(root, 'personDietPref');
+          s.occasion.personDietNotes = ((root.querySelector('#fld-person-diet-notes') as HTMLInputElement)?.value || '').trim();
           break;
         case 6:
           s.occasion.personDrinks = readChecked(root, 'theirDrinks');
@@ -366,8 +368,8 @@ export default function Home() {
 
     function resetStateOnly() {
       stateRef.current = {
-        profile:  { name: '', dietTags: [], drinks: [] },
-        occasion: { occasionType: '', personName: '', interests: [], personDietTags: [], personDrinks: [], stage: '', vibe: [], goal: '' },
+        profile:  { name: '', dietTags: [], dietNotes: '', drinks: [] },
+        occasion: { occasionType: '', personName: '', interests: [], personDietTags: [], personDietNotes: '', personDrinks: [], stage: '', vibe: [], goal: '' },
       };
     }
 
